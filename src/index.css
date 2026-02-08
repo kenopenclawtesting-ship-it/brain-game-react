@@ -1,0 +1,265 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-blue: #1a237e;
+  --primary-purple: #4a148c;
+  --accent-yellow: #ffd700;
+  --accent-green: #00c853;
+  --accent-red: #ff1744;
+  --bg-gradient-start: #0d1b2a;
+  --bg-gradient-end: #1b263b;
+}
+
+body {
+  font-family: 'Baveuse', 'Comic Sans MS', cursive, sans-serif;
+  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  min-height: 100vh;
+  overflow: hidden;
+  color: white;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-container {
+  width: 640px;
+  height: 480px;
+  position: relative;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0d1b2a 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.game-canvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Typography */
+.title {
+  font-family: 'Baveuse', cursive;
+  font-size: 48px;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+.subtitle {
+  font-family: 'Baveuse', cursive;
+  font-size: 24px;
+}
+
+/* Buttons */
+.game-button {
+  font-family: 'Baveuse', cursive;
+  font-size: 24px;
+  padding: 15px 40px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.game-button:hover {
+  transform: scale(1.05);
+}
+
+.game-button:active {
+  transform: scale(0.98);
+}
+
+.game-button.primary {
+  background: linear-gradient(180deg, #ffd700, #ff9500);
+  color: #1a1a2e;
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+.game-button.secondary {
+  background: linear-gradient(180deg, #4fc3f7, #0288d1);
+  color: white;
+  box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
+}
+
+/* Timer bar */
+.timer-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.timer-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00c853, #ffd700, #ff1744);
+  transition: width 0.1s linear;
+}
+
+/* Score display */
+.score-display {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 32px;
+  font-family: 'Baveuse', cursive;
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Countdown overlay */
+.countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+}
+
+.countdown-number {
+  font-size: 150px;
+  font-family: 'Baveuse', cursive;
+  color: #ffd700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+}
+
+/* Feedback indicators */
+.feedback-correct {
+  color: #00c853;
+  font-size: 48px;
+}
+
+.feedback-wrong {
+  color: #ff1744;
+  font-size: 48px;
+}
+
+/* Game grid layouts */
+.game-grid {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+}
+
+/* Card styles */
+.card {
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+
+/* Input styles */
+.game-input {
+  font-family: 'Baveuse', cursive;
+  font-size: 32px;
+  padding: 10px 20px;
+  border: 3px solid #ffd700;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-align: center;
+  outline: none;
+}
+
+.game-input:focus {
+  border-color: #00c853;
+  box-shadow: 0 0 20px rgba(0, 200, 83, 0.5);
+}
+
+/* Numpad */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.numpad-button {
+  font-family: 'Baveuse', cursive;
+  font-size: 28px;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #4a5568, #2d3748);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.numpad-button:hover {
+  background: linear-gradient(180deg, #5a6578, #3d4758);
+  transform: scale(1.05);
+}
+
+.numpad-button:active {
+  transform: scale(0.95);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 0.5s ease-in-out;
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
