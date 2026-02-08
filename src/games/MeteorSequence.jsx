@@ -2,35 +2,69 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 // MeteorSequence - Click floating meteors in ascending order
+// From SOURCE.md:
+// - At round 2 (25% chance): Shows LETTERS (A-Z) instead of numbers
+// - At round 6+: Shows NUMBER WORDS ("THREE", "FIVE") instead of digits
+// - Meteors BOUNCE off each other
+
+const NUMBER_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN'];
+
 function MeteorSequence({ onAnswer, totalCorrect }) {
   const [meteors, setMeteors] = useState([]);
   const [clickedOrder, setClickedOrder] = useState([]);
   const [nextExpected, setNextExpected] = useState(0);
+  const [displayMode, setDisplayMode] = useState('numbers'); // numbers, letters, words
   const containerRef = useRef(null);
+  const animationRef = useRef(null);
 
   const generatePuzzle = useCallback(() => {
     const difficulty = Math.floor(totalCorrect / 4);
     const numMeteors = Math.min(3 + difficulty, 7);
-    const maxNumber = Math.min(15 + totalCorrect * 5, 50);
+    const round = totalCorrect;
     
-    // Generate unique random numbers
-    const numbers = new Set();
-    while (numbers.size < numMeteors) {
-      numbers.add(Math.floor(Math.random() * maxNumber) + 1);
+    // Determine display mode
+    let mode = 'numbers';
+    if (round >= 6 && Math.random() < 0.5) {
+      mode = 'words';
+    } else if (round >= 2 && Math.random() < 0.25) {
+      mode = 'letters';
+    }
+    setDisplayMode(mode);
+    
+    let values;
+    if (mode === 'letters') {
+      // Generate unique random letters
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      const shuffled = letters.sort(() => Math.random() - 0.5);
+      values = shuffled.slice(0, numMeteors).sort();
+    } else {
+      // Generate unique random numbers
+      const maxNumber = mode === 'words' 
+        ? Math.min(10, numMeteors + 3) 
+        : Math.min(15 + totalCorrect * 5, 50);
+      const numbers = new Set();
+      while (numbers.size < numMeteors) {
+        const num = mode === 'words' 
+          ? Math.floor(Math.random() * Math.min(11, maxNumber))
+          : Math.floor(Math.random() * maxNumber) + 1;
+        numbers.add(num);
+      }
+      values = Array.from(numbers).sort((a, b) => a - b);
     }
     
-    const sortedNumbers = Array.from(numbers).sort((a, b) => a - b);
-    
-    // Create meteors with random positions
-    const newMeteors = sortedNumbers.map((num, index) => ({
+    // Create meteors with random positions and velocities
+    const newMeteors = values.map((value, index) => ({
       id: index,
-      number: num,
+      value,
+      displayValue: mode === 'words' ? NUMBER_WORDS[value] : value,
       x: 50 + Math.random() * 250,
       y: 30 + Math.random() * 180,
-      speedX: (Math.random() - 0.5) * 2,
-      speedY: (Math.random() - 0.5) * 2,
+      vx: (Math.random() - 0.5) * 3,
+      vy: (Math.random() - 0.5) * 3,
       rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 4,
       clicked: false,
+      radius: 25,
     }));
     
     setMeteors(newMeteors);
@@ -42,39 +76,81 @@ function MeteorSequence({ onAnswer, totalCorrect }) {
     generatePuzzle();
   }, [generatePuzzle]);
 
-  // Animate meteors
+  // Animate meteors with bouncing physics
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMeteors(prev => prev.map(meteor => {
-        if (meteor.clicked) return meteor;
+    const animate = () => {
+      setMeteors(prev => {
+        const updated = prev.map(meteor => {
+          if (meteor.clicked) return meteor;
+          
+          let newX = meteor.x + meteor.vx;
+          let newY = meteor.y + meteor.vy;
+          let newVx = meteor.vx;
+          let newVy = meteor.vy;
+          
+          // Bounce off walls
+          if (newX < 30) { newX = 30; newVx = Math.abs(newVx); }
+          if (newX > 320) { newX = 320; newVx = -Math.abs(newVx); }
+          if (newY < 20) { newY = 20; newVy = Math.abs(newVy); }
+          if (newY > 220) { newY = 220; newVy = -Math.abs(newVy); }
+          
+          return {
+            ...meteor,
+            x: newX,
+            y: newY,
+            vx: newVx,
+            vy: newVy,
+            rotation: meteor.rotation + meteor.rotationSpeed,
+          };
+        });
         
-        let newX = meteor.x + meteor.speedX;
-        let newY = meteor.y + meteor.speedY;
-        let newSpeedX = meteor.speedX;
-        let newSpeedY = meteor.speedY;
+        // Bounce meteors off each other
+        for (let i = 0; i < updated.length; i++) {
+          for (let j = i + 1; j < updated.length; j++) {
+            const m1 = updated[i];
+            const m2 = updated[j];
+            if (m1.clicked || m2.clicked) continue;
+            
+            const dx = m2.x - m1.x;
+            const dy = m2.y - m1.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const minDist = m1.radius + m2.radius;
+            
+            if (dist < minDist && dist > 0) {
+              // Collision! Swap velocities along collision axis
+              const nx = dx / dist;
+              const ny = dy / dist;
+              const dvx = m1.vx - m2.vx;
+              const dvy = m1.vy - m2.vy;
+              const dvn = dvx * nx + dvy * ny;
+              
+              if (dvn > 0) {
+                updated[i] = { ...m1, vx: m1.vx - dvn * nx, vy: m1.vy - dvn * ny };
+                updated[j] = { ...m2, vx: m2.vx + dvn * nx, vy: m2.vy + dvn * ny };
+              }
+            }
+          }
+        }
         
-        // Bounce off walls
-        if (newX < 30 || newX > 320) newSpeedX *= -1;
-        if (newY < 20 || newY > 220) newSpeedY *= -1;
-        
-        return {
-          ...meteor,
-          x: Math.max(30, Math.min(320, newX)),
-          y: Math.max(20, Math.min(220, newY)),
-          speedX: newSpeedX,
-          speedY: newSpeedY,
-          rotation: meteor.rotation + 1,
-        };
-      }));
-    }, 50);
+        return updated;
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
     
-    return () => clearInterval(interval);
+    animationRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationRef.current);
   }, []);
 
   const handleMeteorClick = (meteor) => {
     if (meteor.clicked) return;
     
-    const sortedMeteors = [...meteors].sort((a, b) => a.number - b.number);
+    const sortedMeteors = [...meteors].sort((a, b) => {
+      if (displayMode === 'letters') {
+        return a.value.localeCompare(b.value);
+      }
+      return a.value - b.value;
+    });
     const expectedMeteor = sortedMeteors[nextExpected];
     
     if (meteor.id === expectedMeteor.id) {
@@ -98,6 +174,14 @@ function MeteorSequence({ onAnswer, totalCorrect }) {
     }
   };
 
+  const getModeLabel = () => {
+    switch (displayMode) {
+      case 'letters': return 'A → Z';
+      case 'words': return 'smallest → largest';
+      default: return 'smallest → largest';
+    }
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -108,12 +192,12 @@ function MeteorSequence({ onAnswer, totalCorrect }) {
       padding: '20px',
     }}>
       <div style={{
-        fontSize: '20px',
+        fontSize: '18px',
         color: 'rgba(255,255,255,0.9)',
         marginBottom: '10px',
         fontFamily: 'Baveuse, cursive',
       }}>
-        Click meteors in order: smallest → largest ☄️
+        Click {displayMode === 'letters' ? 'letters' : 'meteors'} in order: {getModeLabel()} ☄️
       </div>
 
       {/* Progress */}
@@ -161,14 +245,14 @@ function MeteorSequence({ onAnswer, totalCorrect }) {
           <motion.button
             key={meteor.id}
             animate={{
-              x: meteor.x,
-              y: meteor.y,
+              x: meteor.x - 25,
+              y: meteor.y - 25,
               rotate: meteor.rotation,
               scale: meteor.clicked ? 0 : 1,
               opacity: meteor.clicked ? 0 : 1,
             }}
+            transition={{ type: 'tween', duration: 0.05 }}
             whileHover={!meteor.clicked ? { scale: 1.2 } : {}}
-            whileTap={!meteor.clicked ? { scale: 0.9 } : {}}
             onClick={() => handleMeteorClick(meteor)}
             style={{
               position: 'absolute',
@@ -184,13 +268,16 @@ function MeteorSequence({ onAnswer, totalCorrect }) {
               alignItems: 'center',
               justifyContent: 'center',
               fontFamily: 'Baveuse, cursive',
-              fontSize: '18px',
+              fontSize: displayMode === 'words' ? '10px' : '16px',
               color: 'white',
               textShadow: '1px 1px 2px black',
               boxShadow: meteor.clicked ? 'none' : '0 0 15px rgba(255, 150, 50, 0.5)',
+              padding: '2px',
+              textAlign: 'center',
+              lineHeight: '1.1',
             }}
           >
-            {!meteor.clicked && meteor.number}
+            {!meteor.clicked && meteor.displayValue}
           </motion.button>
         ))}
       </div>
