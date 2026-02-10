@@ -45,6 +45,7 @@ function Character({ message }) {
         <circle cx="132" cy="108" r="8" fill="#FFDCB5" />
         <rect x="120" y="105" width="14" height="12" rx="5" fill="white" />
       </svg>
+      <div className="character-pedestal" />
     </div>
   );
 }

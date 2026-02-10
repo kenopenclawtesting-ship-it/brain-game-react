@@ -62,15 +62,15 @@ function PieTimer({ timeRemaining, totalTime }) {
       top: '12px',
       left: '12px',
       zIndex: 20,
-      width: '56px',
-      height: '56px',
+      width: '70px',
+      height: '70px',
       borderRadius: '50%',
-      background: `conic-gradient(#E03030 0deg, #E03030 ${degrees}deg, #3a1515 ${degrees}deg, #3a1515 360deg)`,
+      background: `conic-gradient(#D02020 0deg, #D02020 ${degrees}deg, #3D2020 ${degrees}deg, #3D2020 360deg)`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
-      border: '3px solid #b02020',
+      border: '3px solid #3D2020',
     }}>
       <span style={{
         fontFamily: 'Baveuse, sans-serif',
@@ -97,22 +97,22 @@ function PowerButton({ onClick }) {
         top: '12px',
         right: '12px',
         zIndex: 20,
-        width: '38px',
-        height: '38px',
+        width: '42px',
+        height: '42px',
         borderRadius: '50%',
-        border: '2px solid #c04040',
-        background: 'radial-gradient(circle at 40% 35%, #f07070, #c04040)',
+        border: '3px solid #D946A8',
+        background: 'transparent',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
         padding: 0,
       }}
       title="Exit"
     >
       {/* Power icon via SVG */}
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D946A8" strokeWidth="2.5" strokeLinecap="round">
         <path d="M12 2v8" />
         <path d="M16.24 5.76a8 8 0 1 1-8.48 0" />
       </svg>
@@ -200,7 +200,11 @@ function GameEngine({ gameName, gameIndex, totalGames, onGameComplete, practiceM
 
   return (
     <div className="game-canvas" style={{
-      position: 'relative',
+      position: phase === 'playing' || phase === 'timeup' ? 'absolute' : 'relative',
+      inset: phase === 'playing' || phase === 'timeup' ? 0 : undefined,
+      zIndex: phase === 'playing' || phase === 'timeup' ? 10 : undefined,
+      width: '100%',
+      height: '100%',
       background: 'linear-gradient(170deg, #FDE8E0 0%, #F5D0C0 100%)',
       overflow: 'hidden',
     }}>

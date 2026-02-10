@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 
-// Shape groups matching NORMAL_GROUP_INDICES = [0,1,2,3,4,6]
-// Each group has items (frames) - we use sprite PNGs from extracted assets
 const SHAPE_GROUPS = [
   { name: 'Shapes0', sprite: 'DefineSprite_896_Shapes0', count: 6 },
   { name: 'Shapes1', sprite: 'DefineSprite_930_Shapes1', count: 8 },
@@ -17,7 +15,6 @@ function getItemSpritePath(groupIdx, itemFrame) {
   return `/sprites/${group.sprite}/${itemFrame}.png`;
 }
 
-// Render a single item image
 function ItemImage({ groupIdx, itemFrame, size = 52 }) {
   return (
     <img
@@ -29,15 +26,14 @@ function ItemImage({ groupIdx, itemFrame, size = 52 }) {
   );
 }
 
-// Render items stacked on a pan
-function PanItems({ groupIdx, itemFrames, size = 48 }) {
+// Items sitting ON TOP of a flat platform
+function PlatformItems({ groupIdx, itemFrames, size = 44 }) {
   if (itemFrames.length === 1) {
     return <ItemImage groupIdx={groupIdx} itemFrame={itemFrames[0]} size={size} />;
   }
-  // Multiple items overlap slightly
-  const overlap = Math.min(16, 48 / itemFrames.length);
+  const overlap = Math.min(14, 40 / itemFrames.length);
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', position: 'relative' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }}>
       {itemFrames.map((frame, i) => (
         <div key={i} style={{ marginLeft: i > 0 ? -overlap : 0, zIndex: i }}>
           <ItemImage groupIdx={groupIdx} itemFrame={frame} size={size} />
@@ -47,113 +43,194 @@ function PanItems({ groupIdx, itemFrames, size = 48 }) {
   );
 }
 
-// Balance scale component
+// OG Flash-style balance scale: large black fulcrum, pivot circle, thick beam, flat trays, items ON trays
 function Scale({ leftItems, rightItems, groupIdx, tiltDirection, compact = false }) {
-  // tiltDirection: 'left' = left heavier (left lower), 'right' = right heavier, 'equal' = balanced
-  const tiltAngle = tiltDirection === 'left' ? -8 : tiltDirection === 'right' ? 8 : 0;
-  const w = compact ? 200 : 260;
-  const beamWidth = compact ? 160 : 210;
-  const fulcrumH = compact ? 20 : 26;
-  const itemSize = compact ? 40 : 50;
+  const tiltAngle = tiltDirection === 'left' ? -10 : tiltDirection === 'right' ? 10 : 0;
+
+  // Dimensions scaled for compact (multi-scale) vs normal
+  const s = compact ? 0.65 : 1;
+  const beamWidth = Math.round(250 * s);
+  const halfBeam = beamWidth / 2;
+  const beamThick = Math.round(6 * s);
+  const trayW = Math.round(80 * s);
+  const trayH = Math.round(10 * s);
+  const itemSize = Math.round(60 * s);
+  const fulcrumBottomW = Math.round(50 * s);
+  const fulcrumTopW = Math.round(10 * s);
+  const fulcrumH = Math.round(50 * s);
+  const pivotD = Math.round(12 * s);
+  const pivotR = pivotD / 2;
+
+  // Total container height: items + beam + fulcrum + margins
+  const containerW = beamWidth + trayW + 20;
+  const containerH = itemSize + trayH + beamThick + fulcrumH + pivotD + 10;
+  // Pivot point position from top: leave room for items above beam
+  const pivotTop = itemSize + trayH + beamThick / 2;
 
   return (
     <div style={{
-      width: w,
       position: 'relative',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
+      width: containerW,
+      height: containerH,
     }}>
-      {/* Tilting beam with pans and items */}
+      {/* Fulcrum - stationary, bottom center */}
       <div style={{
-        width: beamWidth,
-        position: 'relative',
-        transform: `rotate(${tiltAngle}deg)`,
-        transformOrigin: 'center bottom',
-        transition: 'transform 0.5s ease',
-        paddingBottom: 4,
+        position: 'absolute',
+        bottom: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 0,
+        height: 0,
       }}>
-        {/* Items row */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          padding: '0 4px',
-          minHeight: itemSize + 8,
-        }}>
-          <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'center', minWidth: 60 }}>
-            <PanItems groupIdx={groupIdx} itemFrames={leftItems} size={itemSize} />
-          </div>
-          <div style={{ flex: '0 0 auto', display: 'flex', justifyContent: 'center', minWidth: 60 }}>
-            <PanItems groupIdx={groupIdx} itemFrames={rightItems} size={itemSize} />
-          </div>
-        </div>
-
-        {/* Beam bar */}
-        <div style={{
-          height: 5,
-          background: '#1A1A1A',
-          borderRadius: 2,
-          margin: '0 2px',
-        }} />
-
-        {/* Pans (trapezoids) */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '0 2px',
-        }}>
-          {/* Left pan */}
-          <svg width="70" height="14" viewBox="0 0 70 14" style={{ display: 'block' }}>
-            <path d="M8 0 L62 0 L56 14 L14 14 Z" fill="#2A2A2A" />
-          </svg>
-          {/* Right pan */}
-          <svg width="70" height="14" viewBox="0 0 70 14" style={{ display: 'block' }}>
-            <path d="M8 0 L62 0 L56 14 L14 14 Z" fill="#2A2A2A" />
-          </svg>
-        </div>
-
-        {/* Vertical strings from beam to pans */}
+        {/* Pentagon/trapezoid shape using clip-path */}
         <div style={{
           position: 'absolute',
-          left: 18,
-          top: itemSize + 8,
-          width: 2,
-          height: 18,
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: fulcrumBottomW,
+          height: fulcrumH,
           background: '#1A1A1A',
-        }} />
-        <div style={{
-          position: 'absolute',
-          right: 18,
-          top: itemSize + 8,
-          width: 2,
-          height: 18,
-          background: '#1A1A1A',
+          clipPath: `polygon(${(fulcrumBottomW - fulcrumTopW) / 2}px 0, ${(fulcrumBottomW + fulcrumTopW) / 2}px 0, ${fulcrumBottomW}px ${fulcrumH}px, 0 ${fulcrumH}px)`,
         }} />
       </div>
 
-      {/* White pivot circle */}
+      {/* White pivot circle - stationary, at pivot point */}
       <div style={{
-        width: 12,
-        height: 12,
+        position: 'absolute',
+        top: pivotTop - pivotR,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: pivotD,
+        height: pivotD,
         borderRadius: '50%',
         background: '#fff',
-        border: '2.5px solid #1A1A1A',
-        position: 'relative',
+        border: `${Math.round(2.5 * s)}px solid #1A1A1A`,
         zIndex: 3,
-        marginTop: -6,
+        boxSizing: 'border-box',
       }} />
 
-      {/* Fulcrum triangle */}
+      {/* Beam assembly - rotates around pivot */}
       <div style={{
-        width: 0,
-        height: 0,
-        borderLeft: `${fulcrumH * 0.7}px solid transparent`,
-        borderRight: `${fulcrumH * 0.7}px solid transparent`,
-        borderBottom: `${fulcrumH}px solid #1A1A1A`,
-        marginTop: -2,
-      }} />
+        position: 'absolute',
+        top: pivotTop,
+        left: '50%',
+        width: beamWidth,
+        transform: `translateX(-50%) rotate(${tiltAngle}deg)`,
+        transformOrigin: 'center top',
+        transition: 'transform 0.5s ease',
+        zIndex: 2,
+      }}>
+        {/* Horizontal beam */}
+        <div style={{
+          position: 'absolute',
+          top: -beamThick / 2,
+          left: 0,
+          width: beamWidth,
+          height: beamThick,
+          background: '#1A1A1A',
+          borderRadius: beamThick / 2,
+        }} />
+
+        {/* Left tray + items */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: -trayW / 2,
+          width: trayW,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}>
+          {/* Items sitting on top of tray */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            minHeight: itemSize,
+            transform: `translateY(-${trayH + beamThick / 2}px)`,
+          }}>
+            <PlatformItems groupIdx={groupIdx} itemFrames={leftItems} size={itemSize} />
+          </div>
+          {/* Flat tray */}
+          <div style={{
+            width: trayW,
+            height: trayH,
+            background: 'linear-gradient(to bottom, #444, #1A1A1A)',
+            borderRadius: 1,
+            transform: `translateY(-${trayH + beamThick / 2}px)`,
+          }} />
+        </div>
+
+        {/* Right tray + items */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          right: -trayW / 2,
+          width: trayW,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}>
+          {/* Items sitting on top of tray */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            minHeight: itemSize,
+            transform: `translateY(-${trayH + beamThick / 2}px)`,
+          }}>
+            <PlatformItems groupIdx={groupIdx} itemFrames={rightItems} size={itemSize} />
+          </div>
+          {/* Flat tray */}
+          <div style={{
+            width: trayW,
+            height: trayH,
+            background: 'linear-gradient(to bottom, #444, #1A1A1A)',
+            borderRadius: 1,
+            transform: `translateY(-${trayH + beamThick / 2}px)`,
+          }} />
+        </div>
+      </div>
     </div>
+  );
+}
+
+// Background spiral SVG
+function SpiralBackground() {
+  // Generate spiral arcs radiating from center
+  const paths = [];
+  const cx = 320, cy = 240;
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * 60) * Math.PI / 180;
+    const r1 = 60, r2 = 180, r3 = 320;
+    // Curved swoosh lines
+    const cp1x = cx + Math.cos(angle + 0.3) * r1;
+    const cp1y = cy + Math.sin(angle + 0.3) * r1;
+    const cp2x = cx + Math.cos(angle + 0.15) * r2;
+    const cp2y = cy + Math.sin(angle + 0.15) * r2;
+    const ex = cx + Math.cos(angle) * r3;
+    const ey = cy + Math.sin(angle) * r3;
+    paths.push(
+      <path
+        key={i}
+        d={`M ${cx} ${cy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${ex} ${ey}`}
+        fill="none"
+        stroke="#fff"
+        strokeWidth={18}
+        strokeLinecap="round"
+        opacity={0.1}
+      />
+    );
+  }
+  return (
+    <svg
+      width="640" height="480"
+      viewBox="0 0 640 480"
+      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+    >
+      {paths}
+    </svg>
   );
 }
 
@@ -163,55 +240,40 @@ function WeightGame({ onAnswer, totalCorrect }) {
 
   const generatePuzzle = useCallback(() => {
     roundRef.current += 1;
-    const round = roundRef.current;
 
-    // Difficulty scaling per ActionScript
     const numScales = Math.min(1 + Math.floor(totalCorrect / 8), 4);
-    // Extra items at higher difficulty
     const extraItems = totalCorrect >= 16 ? 1 : 0;
     const numItems = numScales + 1 + extraItems;
 
-    // Pick a random shape group
     const groupIdx = Math.floor(Math.random() * SHAPE_GROUPS.length);
     const group = SHAPE_GROUPS[groupIdx];
 
-    // Pick unique item frames from the group
     const allFrames = Array.from({ length: group.count }, (_, i) => i + 1);
     const shuffledFrames = allFrames.sort(() => Math.random() - 0.5);
     const selectedFrames = shuffledFrames.slice(0, Math.min(numItems, group.count));
 
-    // Assign weights - each item gets a unique weight (unless equal trap)
     const items = selectedFrames.map((frame, i) => ({
       frame,
       weight: (selectedFrames.length - i) * 10 + Math.floor(Math.random() * 8),
     }));
 
-    // At round 4+ (totalCorrect >= 3): may have EQUAL weight items (traps)
     if (totalCorrect >= 3 && Math.random() < 0.3) {
-      // Make two items equal weight (but neither is the heaviest)
       if (items.length >= 3) {
         items[items.length - 1].weight = items[items.length - 2].weight;
       }
     }
 
-    // Sort by weight descending - heaviest first
     items.sort((a, b) => b.weight - a.weight);
     const heaviestFrame = items[0].frame;
 
-    // Generate scales - each scale compares items
     const scales = [];
-    // At round 3+ (totalCorrect >= 2): may have multiple items per side
     const allowMultiple = totalCorrect >= 2;
 
-    // Build scales that allow player to deduce the heaviest
-    // Strategy: create comparisons that form a chain showing the heaviest
     for (let s = 0; s < numScales; s++) {
       let leftFrames, rightFrames;
 
       if (allowMultiple && Math.random() < 0.4 && items.length > 2) {
-        // Multiple items per side (up to 3)
         const numPerSide = Math.min(2 + (Math.random() < 0.3 ? 1 : 0), 3);
-        // Pick items for left and right
         const availableItems = [...items];
         leftFrames = [];
         rightFrames = [];
@@ -230,7 +292,6 @@ function WeightGame({ onAnswer, totalCorrect }) {
           rightWeight += rightItem.weight;
         }
 
-        // Fallback if not enough items
         if (leftFrames.length === 0 || rightFrames.length === 0) {
           leftFrames = [items[Math.min(s, items.length - 1)].frame];
           rightFrames = [items[Math.min(s + 1, items.length - 1)].frame];
@@ -239,7 +300,6 @@ function WeightGame({ onAnswer, totalCorrect }) {
         const tilt = leftWeight > rightWeight ? 'left' : leftWeight < rightWeight ? 'right' : 'equal';
         scales.push({ leftFrames, rightFrames, tilt });
       } else {
-        // Simple 1v1 comparison
         const leftItem = items[Math.min(s, items.length - 1)];
         const rightItem = items[Math.min(s + 1, items.length - 1)];
         const tilt = leftItem.weight > rightItem.weight ? 'left' : leftItem.weight < rightItem.weight ? 'right' : 'equal';
@@ -251,15 +311,9 @@ function WeightGame({ onAnswer, totalCorrect }) {
       }
     }
 
-    // Answer options - all unique items shuffled
     const answerFrames = [...selectedFrames].sort(() => Math.random() - 0.5);
 
-    setPuzzle({
-      groupIdx,
-      scales,
-      answerFrames,
-      heaviestFrame,
-    });
+    setPuzzle({ groupIdx, scales, answerFrames, heaviestFrame });
   }, [totalCorrect]);
 
   useEffect(() => {
@@ -278,46 +332,81 @@ function WeightGame({ onAnswer, totalCorrect }) {
   const { groupIdx, scales, answerFrames } = puzzle;
   const compact = scales.length > 2;
 
+  // Layout: for 3 scales, 2 on top + 1 on bottom with connecting lines
+  const isThreeScale = scales.length === 3;
+  const isTwoScale = scales.length === 2;
+
   return (
     <div style={{
+      position: 'relative',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
+      width: '100%',
       height: '100%',
-      padding: '16px 20px',
-      gap: '12px',
+      overflow: 'hidden',
     }}>
-      {/* Scales display */}
+      {/* Background spiral */}
+      <SpiralBackground />
+
+      {/* Scales area */}
       <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        alignItems: 'flex-end',
-        gap: compact ? '16px' : '28px',
         flex: '1 1 auto',
-        alignContent: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: isThreeScale ? 8 : 16,
+        position: 'relative',
+        zIndex: 1,
       }}>
-        {scales.map((scale, i) => (
-          <Scale
-            key={i}
-            leftItems={scale.leftFrames}
-            rightItems={scale.rightFrames}
-            groupIdx={groupIdx}
-            tiltDirection={scale.tilt}
-            compact={compact}
-          />
-        ))}
+        {isThreeScale ? (
+          <>
+            {/* Top row: 2 scales */}
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'flex-end' }}>
+              <Scale leftItems={scales[0].leftFrames} rightItems={scales[0].rightFrames} groupIdx={groupIdx} tiltDirection={scales[0].tilt} compact />
+              <Scale leftItems={scales[1].leftFrames} rightItems={scales[1].rightFrames} groupIdx={groupIdx} tiltDirection={scales[1].tilt} compact />
+            </div>
+            {/* Connecting lines */}
+            <svg width="300" height="20" style={{ display: 'block' }}>
+              <line x1="75" y1="0" x2="150" y2="20" stroke="#1A1A1A" strokeWidth={3} />
+              <line x1="225" y1="0" x2="150" y2="20" stroke="#1A1A1A" strokeWidth={3} />
+            </svg>
+            {/* Bottom: 1 scale */}
+            <Scale leftItems={scales[2].leftFrames} rightItems={scales[2].rightFrames} groupIdx={groupIdx} tiltDirection={scales[2].tilt} compact />
+          </>
+        ) : (
+          <div style={{
+            display: 'flex',
+            gap: isTwoScale ? 20 : 0,
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+          }}>
+            {scales.map((scale, i) => (
+              <Scale
+                key={i}
+                leftItems={scale.leftFrames}
+                rightItems={scale.rightFrames}
+                groupIdx={groupIdx}
+                tiltDirection={scale.tilt}
+                compact={compact}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Answer buttons - OG style: white rounded squares with dark borders */}
+      {/* Answer buttons row at bottom */}
       <div style={{
         display: 'flex',
-        gap: '14px',
-        flexWrap: 'wrap',
+        gap: 12,
         justifyContent: 'center',
-        paddingBottom: '16px',
+        padding: '12px 16px 16px',
         flexShrink: 0,
+        position: 'relative',
+        zIndex: 1,
       }}>
         {answerFrames.map((frame) => (
           <motion.button
@@ -326,16 +415,16 @@ function WeightGame({ onAnswer, totalCorrect }) {
             whileTap={{ scale: 0.92 }}
             onClick={() => handleItemClick(frame)}
             style={{
-              width: '76px',
-              height: '76px',
+              width: 80,
+              height: 80,
               background: '#FAFAFA',
               border: '3px solid #2A2A2A',
-              borderRadius: '14px',
+              borderRadius: 8,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
               padding: 4,
             }}
           >
