@@ -1,11 +1,3 @@
-@font-face {
-  font-family: 'Baveuse';
-  src: url('/fonts/Baveuse.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -13,18 +5,24 @@
 }
 
 :root {
-  --primary-blue: #1a237e;
-  --primary-purple: #4a148c;
+  --stage-bg-start: #2A3E3F;
+  --stage-bg-end: #1A2D2E;
+  --arch-silver-light: #A0A8B0;
+  --arch-silver-dark: #7A8290;
+  --platform-pink: #D94B8A;
+  --platform-pink-dark: #C43F7E;
+  --button-gold: #E8C840;
+  --button-gold-dark: #D4A830;
+  --title-brown: #8B7D3C;
+  --accent-light: #FFF5CC;
   --accent-yellow: #ffd700;
   --accent-green: #00c853;
   --accent-red: #ff1744;
-  --bg-gradient-start: #0d1b2a;
-  --bg-gradient-end: #1b263b;
 }
 
 body {
-  font-family: 'Baveuse', 'Comic Sans MS', cursive, sans-serif;
-  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  font-family: 'Bubblegum Sans', 'Comic Sans MS', cursive, sans-serif;
+  background: linear-gradient(135deg, #0d1117, #1a1a2e);
   min-height: 100vh;
   overflow: hidden;
   color: white;
@@ -39,13 +37,10 @@ body {
 }
 
 .game-container {
-  width: 640px;
-  height: 480px;
+  width: 750px;
+  height: 560px;
   position: relative;
-  background: linear-gradient(180deg, #1e3a5f 0%, #0d1b2a 100%);
-  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .game-canvas {
@@ -56,19 +51,19 @@ body {
 
 /* Typography */
 .title {
-  font-family: 'Baveuse', cursive;
+  font-family: 'Luckiest Guy', cursive;
   font-size: 48px;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
 }
 
 .subtitle {
-  font-family: 'Baveuse', cursive;
+  font-family: 'Luckiest Guy', cursive;
   font-size: 24px;
 }
 
 /* Buttons */
 .game-button {
-  font-family: 'Baveuse', cursive;
+  font-family: 'Luckiest Guy', cursive;
   font-size: 24px;
   padding: 15px 40px;
   border: none;
@@ -121,7 +116,7 @@ body {
   top: 20px;
   right: 20px;
   font-size: 32px;
-  font-family: 'Baveuse', cursive;
+  font-family: 'Luckiest Guy', cursive;
   color: #ffd700;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
@@ -142,7 +137,7 @@ body {
 
 .countdown-number {
   font-size: 150px;
-  font-family: 'Baveuse', cursive;
+  font-family: 'Luckiest Guy', cursive;
   color: #ffd700;
   text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
 }
@@ -182,7 +177,7 @@ body {
 
 /* Input styles */
 .game-input {
-  font-family: 'Baveuse', cursive;
+  font-family: 'Luckiest Guy', cursive;
   font-size: 32px;
   padding: 10px 20px;
   border: 3px solid #ffd700;
@@ -208,7 +203,7 @@ body {
 }
 
 .numpad-button {
-  font-family: 'Baveuse', cursive;
+  font-family: 'Luckiest Guy', cursive;
   font-size: 28px;
   padding: 15px;
   border: none;
@@ -226,6 +221,353 @@ body {
 
 .numpad-button:active {
   transform: scale(0.95);
+}
+
+/* ======================== */
+/* GAME STAGE               */
+/* ======================== */
+
+.game-stage {
+  width: 750px;
+  height: 560px;
+  position: relative;
+  background: linear-gradient(180deg, var(--arch-silver-light), var(--arch-silver-dark));
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* Spotlights */
+.game-stage .spotlight {
+  position: absolute;
+  top: -10px;
+  width: 40px;
+  height: 100px;
+  z-index: 5;
+}
+
+.game-stage .spotlight-left {
+  left: 30px;
+  transform: rotate(-25deg);
+}
+
+.game-stage .spotlight-right {
+  right: 30px;
+  transform: rotate(25deg);
+}
+
+.game-stage .spotlight-body {
+  width: 30px;
+  height: 60px;
+  background: linear-gradient(180deg, #ccc, #888);
+  border-radius: 6px 6px 15px 15px;
+  margin: 0 auto;
+}
+
+.game-stage .spotlight-beam {
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(ellipse, rgba(255,245,204,0.6), transparent 70%);
+  margin: 0 auto;
+}
+
+/* Inner stage area */
+.game-stage .stage-inner {
+  position: absolute;
+  top: 20px;
+  left: 50px;
+  right: 50px;
+  bottom: 100px;
+  background: linear-gradient(180deg, #7EC8C8 0%, var(--stage-bg-start) 60%, var(--stage-bg-end) 100%);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Platform */
+.game-stage .platform {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  z-index: 2;
+}
+
+.game-stage .platform-top {
+  height: 55px;
+  background: linear-gradient(180deg, var(--platform-pink), var(--platform-pink-dark));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Polka dots on platform */
+.game-stage .platform-top::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle 4px, rgba(255,255,255,0.2) 100%, transparent 100%);
+  background-size: 20px 20px;
+  background-position: 5px 5px;
+}
+
+/* Marquee lights strip */
+.game-stage .marquee-strip {
+  height: 14px;
+  background: #C43F7E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 20px;
+}
+
+.game-stage .marquee-light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  box-shadow: 0 0 4px var(--accent-light);
+  animation: marquee-blink 1s infinite alternate;
+}
+
+.game-stage .marquee-light:nth-child(even) {
+  animation-delay: 0.5s;
+}
+
+@keyframes marquee-blink {
+  0% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* Pedestal base */
+.game-stage .pedestal {
+  height: 31px;
+  background: linear-gradient(180deg, #B0B8C0, #8A9098);
+  border-radius: 0 0 8px 8px;
+}
+
+/* Copyright bar */
+.game-stage .copyright-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  font-family: Arial, sans-serif;
+}
+
+/* ======================== */
+/* MAIN MENU                */
+/* ======================== */
+
+.main-menu {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.main-menu .menu-title {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.main-menu .menu-title .title-top {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 20px;
+  color: #fff;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  letter-spacing: 3px;
+}
+
+.main-menu .menu-title .title-brain {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 58px;
+  color: var(--title-brown);
+  text-shadow: 3px 3px 0px #4a3f1a, -1px -1px 0px #4a3f1a, 1px -1px 0px #4a3f1a, -1px 1px 0px #4a3f1a;
+  line-height: 1;
+}
+
+.main-menu .pro-banner {
+  background: linear-gradient(180deg, #D4A830, #B8922A);
+  border: 2px solid #8B7D3C;
+  border-radius: 15px;
+  padding: 4px 30px;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 14px;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+/* Menu buttons area */
+.main-menu .menu-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 420px;
+  padding: 0 10px;
+}
+
+.main-menu .menu-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+}
+
+.main-menu .menu-btn:hover {
+  transform: scale(1.08);
+}
+
+.main-menu .menu-btn-icon {
+  width: 60px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+.main-menu .menu-btn-label {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 20px;
+  color: var(--button-gold);
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.4);
+  text-transform: uppercase;
+}
+
+/* Play button icons row */
+.main-menu .play-icons {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.main-menu .play-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+}
+
+/* Practice mode overlay */
+.practice-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 45, 46, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 10px;
+}
+
+.practice-overlay h2 {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 28px;
+  color: var(--button-gold);
+  margin-bottom: 15px;
+}
+
+.practice-overlay .practice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+  max-width: 450px;
+}
+
+.practice-overlay .practice-game-btn {
+  padding: 10px 14px;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 13px;
+  background: linear-gradient(180deg, var(--platform-pink), var(--platform-pink-dark));
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.practice-overlay .practice-game-btn:hover {
+  transform: scale(1.05);
+}
+
+.practice-overlay .back-btn {
+  padding: 10px 30px;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 16px;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+}
+
+.practice-overlay .back-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* ======================== */
+/* CHARACTER                */
+/* ======================== */
+
+.character-wrapper {
+  position: absolute;
+  right: -10px;
+  bottom: 60px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.speech-bubble {
+  background: white;
+  color: #333;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: 'Bubblegum Sans', sans-serif;
+  font-size: 14px;
+  max-width: 180px;
+  text-align: center;
+  margin-bottom: 8px;
+  margin-right: 20px;
+  position: relative;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  right: 30px;
+  border-width: 10px 8px 0;
+  border-style: solid;
+  border-color: white transparent transparent;
 }
 
 /* Animations */

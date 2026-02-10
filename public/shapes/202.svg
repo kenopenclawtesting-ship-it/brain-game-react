@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:ffdec="https://www.free-decompiler.com/flash" xmlns:xlink="http://www.w3.org/1999/xlink" ffdec:objectType="shape" height="38.5px" width="38.5px" xmlns="http://www.w3.org/2000/svg">
+  <g transform="matrix(1.0, 0.0, 0.0, 1.0, 19.25, 19.25)">
+    <path d="M13.6 -13.6 Q19.25 -7.9 19.25 0.05 19.25 8.0 13.6 13.65 7.95 19.25 0.0 19.25 -7.95 19.25 -13.65 13.65 -19.25 8.0 -19.25 0.05 -19.25 -7.9 -13.65 -13.6 -7.95 -19.25 0.0 -19.25 7.95 -19.25 13.6 -13.6" fill="#f5807d" fill-rule="evenodd" stroke="none"/>
+    <path d="M0.0 2.0 L8.15 6.1 8.15 15.6 0.0 11.55 0.0 2.0" fill="#c6e8f3" fill-rule="evenodd" stroke="none"/>
+    <path d="M8.15 6.1 L16.3 2.0 16.3 11.55 8.15 15.6 8.15 6.1" fill="#9bdaf1" fill-rule="evenodd" stroke="none"/>
+    <path d="M16.3 2.0 L8.15 6.1 0.0 2.0 8.15 -2.05 16.3 2.0" fill="#f4fafd" fill-rule="evenodd" stroke="none"/>
+    <path d="M-8.15 -11.55 L0.0 -7.5 0.0 2.0 -8.15 -2.05 -8.15 -11.55" fill="#c23b7f" fill-rule="evenodd" stroke="none"/>
+    <path d="M8.15 -11.55 L8.15 -2.05 0.0 2.0 0.0 -7.5 8.15 -11.55" fill="#992967" fill-rule="evenodd" stroke="none"/>
+    <path d="M0.0 -7.5 L-8.15 -11.55 0.0 -15.65 8.15 -11.55 0.0 -7.5" fill="#ec248c" fill-rule="evenodd" stroke="none"/>
+    <path d="M-16.3 2.05 L-16.05 2.15 -8.15 6.1 -8.15 15.6 -16.3 11.55 -16.3 2.05" fill="#d0e186" fill-rule="evenodd" stroke="none"/>
+    <path d="M-8.15 6.1 L0.0 2.05 0.0 11.55 -8.15 15.6 -8.15 6.1" fill="#aad287" fill-rule="evenodd" stroke="none"/>
+    <path d="M0.0 2.05 L-8.15 6.1 -16.05 2.15 -16.3 2.05 -8.15 -2.05 0.0 2.05" fill="#f4f1bd" fill-rule="evenodd" stroke="none"/>
+    <path d="M2.65 -11.4 L-0.05 -10.05 -0.05 -11.4 2.65 -12.75 2.65 -11.4" fill="#992967" fill-rule="evenodd" stroke="none"/>
+    <path d="M-2.8 -11.4 L-2.8 -12.75 -0.05 -11.4 -0.05 -10.05 -2.8 -11.4" fill="#c23b7f" fill-rule="evenodd" stroke="none"/>
+    <path d="M2.65 -12.75 L-0.05 -11.4 -2.8 -12.75 -0.05 -14.15 2.65 -12.75" fill="#ec248c" fill-rule="evenodd" stroke="none"/>
+    <path d="M-5.5 2.15 L-8.25 3.5 -8.25 2.15 -5.5 0.8 -5.5 2.15" fill="#aad287" fill-rule="evenodd" stroke="none"/>
+    <path d="M-10.95 2.15 L-10.95 0.8 -8.25 2.15 -8.25 3.5 -10.95 2.15" fill="#d0e186" fill-rule="evenodd" stroke="none"/>
+    <path d="M-5.5 0.8 L-8.25 2.15 -10.95 0.8 -8.25 -0.55 -5.5 0.8" fill="#f4f1bd" fill-rule="evenodd" stroke="none"/>
+    <path d="M10.75 2.15 L8.05 3.5 8.05 2.15 10.75 0.8 10.75 2.15" fill="#9cdaf1" fill-rule="evenodd" stroke="none"/>
+    <path d="M8.05 2.15 L8.05 3.5 5.3 2.15 5.3 0.8 8.05 2.15" fill="#c6e8f3" fill-rule="evenodd" stroke="none"/>
+    <path d="M10.75 0.8 L8.05 2.15 5.3 0.8 8.05 -0.55 10.75 0.8" fill="#ffffff" fill-rule="evenodd" stroke="none"/>
+  </g>
+</svg>

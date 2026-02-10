@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import MainMenu from './components/MainMenu';
 import GameEngine from './components/GameEngine';
 import SummaryScreen from './components/SummaryScreen';
+import GameStage from './components/GameStage';
 import { initSounds, playSound, stopSound, stopAllSounds } from './utils/sounds';
 import { selectGamesForFullTest, CATEGORY_NAMES } from './utils/scoring';
 
@@ -112,40 +113,42 @@ function App() {
 
   return (
     <div className="game-container">
-      <AnimatePresence mode="wait">
-        {gameState === GameState.MAIN_MENU && (
-          <MainMenu
-            key="menu"
-            onStartFullTest={handleStartFullTest}
-            onStartPractice={handleStartPractice}
-            allGames={ALL_GAMES}
-            soundEnabled={soundEnabled}
-            onToggleSound={() => setSoundEnabled(!soundEnabled)}
-          />
-        )}
+      <GameStage>
+        <AnimatePresence mode="wait">
+          {gameState === GameState.MAIN_MENU && (
+            <MainMenu
+              key="menu"
+              onStartFullTest={handleStartFullTest}
+              onStartPractice={handleStartPractice}
+              allGames={ALL_GAMES}
+              soundEnabled={soundEnabled}
+              onToggleSound={() => setSoundEnabled(!soundEnabled)}
+            />
+          )}
 
-        {gameState === GameState.PLAYING && currentGame && (
-          <GameEngine
-            key={`game-${currentGameIndex}`}
-            gameName={currentGame}
-            gameIndex={currentGameIndex}
-            totalGames={selectedGames.length}
-            onGameComplete={handleGameComplete}
-            practiceMode={practiceMode}
-          />
-        )}
+          {gameState === GameState.PLAYING && currentGame && (
+            <GameEngine
+              key={`game-${currentGameIndex}`}
+              gameName={currentGame}
+              gameIndex={currentGameIndex}
+              totalGames={selectedGames.length}
+              onGameComplete={handleGameComplete}
+              practiceMode={practiceMode}
+            />
+          )}
 
-        {gameState === GameState.SUMMARY && (
-          <SummaryScreen
-            key="summary"
-            categoryScores={categoryScores}
-            totalScore={totalScore}
-            gameResults={gameResults}
-            onPlayAgain={handleStartFullTest}
-            onReturnToMenu={handleReturnToMenu}
-          />
-        )}
-      </AnimatePresence>
+          {gameState === GameState.SUMMARY && (
+            <SummaryScreen
+              key="summary"
+              categoryScores={categoryScores}
+              totalScore={totalScore}
+              gameResults={gameResults}
+              onPlayAgain={handleStartFullTest}
+              onReturnToMenu={handleReturnToMenu}
+            />
+          )}
+        </AnimatePresence>
+      </GameStage>
     </div>
   );
 }

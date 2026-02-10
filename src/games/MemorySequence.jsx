@@ -1,103 +1,192 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-// MemorySequence - Simon-says style memory game
-const SWITCH_COLORS = ['#ff5252', '#448aff', '#69f0ae', '#ffd740', '#b388ff'];
+// Layout data: sprite name, image dimensions, and switch positions (px coords)
+const LAYOUTS = [
+  { sprite: 'DefineSprite_1076_SwitchLayout0', w: 338, h: 342, switches: [[169,63],[63,171],[274,171],[168,278]] },
+  { sprite: 'DefineSprite_1067_SwitchLayout1', w: 595, h: 177, switches: [[179,63],[415,63],[63,113],[295,113],[531,113]] },
+  { sprite: 'DefineSprite_1072_SwitchLayout2', w: 399, h: 373, switches: [[199,63],[63,186],[199,186],[335,186],[199,309]] },
+  { sprite: 'DefineSprite_1075_SwitchLayout3', w: 345, h: 358, switches: [[174,63],[63,123],[281,123],[63,240],[281,240],[174,294]] },
+  { sprite: 'DefineSprite_1073_SwitchLayout4', w: 394, h: 397, switches: [[63,63],[197,63],[331,63],[197,198],[63,333],[197,334],[331,334]] },
+  { sprite: 'DefineSprite_1074_SwitchLayout5', w: 574, h: 397, switches: [[153,63],[420,63],[287,121],[63,198],[510,198],[286,276],[153,334],[420,334]] },
+  { sprite: 'DefineSprite_1071_SwitchLayout6', w: 399, h: 373, switches: [[63,63],[199,63],[335,63],[63,186],[199,186],[335,186],[63,309],[199,309],[335,309]] },
+  { sprite: 'DefineSprite_1070_SwitchLayout7', w: 577, h: 373, switches: [[151,63],[287,63],[423,63],[63,186],[214,186],[362,186],[513,186],[151,309],[287,309],[428,309]] },
+  { sprite: 'DefineSprite_1069_SwitchLayout8', w: 508, h: 388, switches: [[63,63],[191,63],[317,63],[445,63],[63,194],[259,195],[445,195],[63,324],[191,324],[317,324],[445,324]] },
+  { sprite: 'DefineSprite_1068_SwitchLayout9', w: 535, h: 373, switches: [[63,63],[199,63],[335,63],[471,63],[63,186],[199,186],[335,186],[471,186],[63,309],[199,309],[335,309],[471,309]] },
+];
+
+// Switch types: sprite name, dimensions, frame count
+const SWITCH_TYPES = [
+  { sprite: 'DefineSprite_1062_Switch0', w: 113, h: 144, frames: 25 },
+  { sprite: 'DefineSprite_1301_Switch1', w: 112, h: 96, frames: 25 },
+  { sprite: 'DefineSprite_1048_Switch2', w: 154, h: 99, frames: 25 },
+  { sprite: 'DefineSprite_1053_Switch3', w: 88, h: 151, frames: 25 },
+  { sprite: 'DefineSprite_1056_Switch4', w: 103, h: 89, frames: 25 },
+];
+
+// Container size (green/red circle)
+const CONTAINER_SIZE = 127;
+
+// Preload images
+const preloadedImages = new Set();
+function preloadImage(src) {
+  if (preloadedImages.has(src)) return;
+  preloadedImages.add(src);
+  const img = new Image();
+  img.src = src;
+}
 
 function MemorySequence({ onAnswer, totalCorrect }) {
-  const [phase, setPhase] = useState('showing'); // showing, input
+  const [phase, setPhase] = useState('init'); // init, showing, waiting, input
+  const [layoutIdx, setLayoutIdx] = useState(0);
+  const [switchType, setSwitchType] = useState(0);
   const [sequence, setSequence] = useState([]);
-  const [userSequence, setUserSequence] = useState([]);
-  const [currentShowIndex, setCurrentShowIndex] = useState(0);
-  const [numSwitches, setNumSwitches] = useState(4);
-  const [activeSwitch, setActiveSwitch] = useState(null);
+  const [showIndex, setShowIndex] = useState(0);
+  const [inputIndex, setInputIndex] = useState(0);
+  const [litSwitch, setLitSwitch] = useState(null); // index of currently lit switch
+  const [clickable, setClickable] = useState(false);
+  const [clickedSwitch, setClickedSwitch] = useState(null);
+  const timerRef = useRef(null);
+  const mountedRef = useRef(true);
 
-  const generateSequence = useCallback(() => {
-    const difficulty = Math.floor(totalCorrect / 3);
-    const switches = Math.min(4 + Math.floor(difficulty / 2), 6);
-    const seqLength = Math.min(3 + Math.floor((totalCorrect + 1) / 3), 8);
-    
-    setNumSwitches(switches);
-    
+  // Cleanup on unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const setupRound = useCallback(() => {
+    const tc = totalCorrect;
+
+    // Pick layout based on difficulty
+    const minLayout = Math.min(Math.floor(tc / 2), 8);
+    const maxLayout = Math.min(2 + Math.floor(tc / 2), 10);
+    const li = Math.floor(Math.random() * (maxLayout - minLayout)) + minLayout;
+    const layout = LAYOUTS[li];
+
+    // Pick random switch type
+    const st = Math.floor(Math.random() * 5);
+
+    // Preload switch frames
+    const switchInfo = SWITCH_TYPES[st];
+    for (let f = 1; f <= switchInfo.frames; f++) {
+      preloadImage(`/sprites/${switchInfo.sprite}/${f}.png`);
+    }
+
+    const numSwitches = layout.switches.length;
+    const seqLength = 3 + Math.floor((tc + 1) / 3);
+
     // Generate sequence (no triple repeats)
     const seq = [];
+    let repeatCount = 0;
     for (let i = 0; i < seqLength; i++) {
       let next;
       do {
-        next = Math.floor(Math.random() * switches);
-      } while (
-        seq.length >= 2 &&
-        seq[seq.length - 1] === next &&
-        seq[seq.length - 2] === next
-      );
+        next = Math.floor(Math.random() * numSwitches);
+        if (i > 0 && next === seq[i - 1]) {
+          repeatCount++;
+        } else {
+          repeatCount = 0;
+        }
+      } while (repeatCount >= 2);
       seq.push(next);
     }
-    
+
+    setLayoutIdx(li);
+    setSwitchType(st);
     setSequence(seq);
-    setUserSequence([]);
-    setCurrentShowIndex(0);
+    setShowIndex(0);
+    setInputIndex(0);
+    setLitSwitch(null);
+    setClickedSwitch(null);
+    setClickable(false);
     setPhase('showing');
-    setActiveSwitch(null);
   }, [totalCorrect]);
 
+  // Initialize on mount / totalCorrect change
   useEffect(() => {
-    generateSequence();
-  }, [generateSequence]);
+    setupRound();
+  }, [setupRound]);
 
-  // Show sequence animation
+  // Sequence playback
   useEffect(() => {
-    if (phase === 'showing' && currentShowIndex < sequence.length) {
-      const delay = Math.max(500 - totalCorrect * 15, 300);
-      
+    if (phase !== 'showing' || sequence.length === 0) return;
+
+    const delay = Math.max(500 - totalCorrect * 15, 300);
+
+    if (showIndex < sequence.length) {
       // Light up switch
-      setActiveSwitch(sequence[currentShowIndex]);
-      
-      const timer = setTimeout(() => {
-        setActiveSwitch(null);
-        setTimeout(() => {
-          setCurrentShowIndex(i => i + 1);
+      setLitSwitch(sequence[showIndex]);
+
+      timerRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
+        setLitSwitch(null);
+        timerRef.current = setTimeout(() => {
+          if (!mountedRef.current) return;
+          setShowIndex(i => i + 1);
         }, 150);
       }, delay);
-      
-      return () => clearTimeout(timer);
-    } else if (phase === 'showing' && currentShowIndex >= sequence.length && sequence.length > 0) {
-      setTimeout(() => setPhase('input'), 300);
+    } else {
+      // Done showing, wait a beat then enable input
+      timerRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
+        setPhase('input');
+        setClickable(true);
+        setLitSwitch(null);
+      }, delay);
     }
-  }, [phase, currentShowIndex, sequence, totalCorrect]);
 
-  const handleSwitchClick = (index) => {
-    if (phase !== 'input') return;
-    
-    // Flash the switch
-    setActiveSwitch(index);
-    setTimeout(() => setActiveSwitch(null), 150);
-    
-    const newUserSequence = [...userSequence, index];
-    setUserSequence(newUserSequence);
-    
-    // Check if correct so far
-    if (index !== sequence[userSequence.length]) {
-      onAnswer(false);
-      generateSequence();
-      return;
-    }
-    
-    // Check if complete
-    if (newUserSequence.length === sequence.length) {
-      onAnswer(true);
-      setTimeout(generateSequence, 500);
-    }
-  };
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [phase, showIndex, sequence, totalCorrect]);
 
-  // Arrange switches in a circle
-  const getSwitchPosition = (index, total) => {
-    const angle = (index / total) * Math.PI * 2 - Math.PI / 2;
-    const radius = 100;
-    return {
-      x: Math.cos(angle) * radius + 150,
-      y: Math.sin(angle) * radius + 120,
-    };
-  };
+  const handleSwitchClick = useCallback((index) => {
+    if (!clickable || phase !== 'input') return;
+
+    setClickable(false);
+    setLitSwitch(index);
+    setClickedSwitch(index);
+
+    // Check answer
+    if (index === sequence[inputIndex]) {
+      // Correct
+      const nextInput = inputIndex + 1;
+      if (nextInput >= sequence.length) {
+        // Complete!
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          onAnswer(true);
+          setLitSwitch(null);
+          setClickedSwitch(null);
+        }, 400);
+      } else {
+        setInputIndex(nextInput);
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          setLitSwitch(null);
+          setClickedSwitch(null);
+          setClickable(true);
+        }, 300);
+      }
+    } else {
+      // Wrong
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        onAnswer(false);
+        setLitSwitch(null);
+        setClickedSwitch(null);
+      }, 400);
+    }
+  }, [clickable, phase, sequence, inputIndex, onAnswer]);
+
+  const layout = LAYOUTS[layoutIdx];
+  const switchInfo = SWITCH_TYPES[switchType];
+
+  // Scale layout to fit in game area (max ~500x380)
+  const maxW = 520;
+  const maxH = 370;
+  const scale = Math.min(maxW / layout.w, maxH / layout.h, 1);
 
   return (
     <div style={{
@@ -106,85 +195,126 @@ function MemorySequence({ onAnswer, totalCorrect }) {
       alignItems: 'center',
       justifyContent: 'center',
       height: '100%',
-      padding: '20px',
+      padding: '10px',
+      userSelect: 'none',
     }}>
+      {/* Status text */}
       <div style={{
         fontSize: '20px',
-        color: 'rgba(255,255,255,0.9)',
-        marginBottom: '15px',
-        fontFamily: 'Baveuse, cursive',
+        color: '#4A3728',
+        marginBottom: '8px',
+        fontFamily: "'Bubblegum Sans', cursive",
+        textShadow: '0 1px 2px rgba(255,255,255,0.5)',
       }}>
-        {phase === 'showing' ? 'Watch the sequence... 👀' : 'Repeat the pattern! 🎯'}
+        {phase === 'showing' ? 'Watch carefully...' : phase === 'input' ? 'Your turn!' : ''}
       </div>
 
-      {/* Progress indicator */}
+      {/* Progress dots */}
       <div style={{
         display: 'flex',
-        gap: '8px',
-        marginBottom: '20px',
+        gap: '6px',
+        marginBottom: '12px',
+        minHeight: '16px',
       }}>
-        {sequence.map((_, index) => (
+        {sequence.map((_, i) => (
           <div
-            key={index}
+            key={i}
             style={{
-              width: '12px',
-              height: '12px',
+              width: '14px',
+              height: '14px',
               borderRadius: '50%',
-              background: index < userSequence.length
-                ? '#00c853'
-                : index < currentShowIndex && phase === 'showing'
-                ? '#ffd700'
-                : 'rgba(255,255,255,0.2)',
+              border: '2px solid rgba(74,55,40,0.3)',
+              background:
+                phase === 'input' && i < inputIndex ? '#4CAF50' :
+                phase === 'showing' && i < showIndex ? '#FFA726' :
+                phase === 'showing' && i === showIndex && litSwitch !== null ? '#FFD54F' :
+                'rgba(255,255,255,0.4)',
+              transition: 'background 0.2s',
             }}
           />
         ))}
       </div>
 
-      {/* Switches */}
-      <div style={{ position: 'relative', width: '300px', height: '250px' }}>
-        {Array.from({ length: numSwitches }).map((_, index) => {
-          const pos = getSwitchPosition(index, numSwitches);
-          const isActive = activeSwitch === index;
-          
+      {/* Game board */}
+      <div style={{
+        position: 'relative',
+        width: layout.w * scale,
+        height: layout.h * scale,
+      }}>
+        {/* Layout background (green circles) */}
+        <img
+          src={`/sprites/${layout.sprite}/1.png`}
+          alt=""
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: layout.w * scale,
+            height: layout.h * scale,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Red circle overlay for lit switches */}
+        {layout.switches.map((pos, idx) => {
+          const isLit = litSwitch === idx;
+          const isActive = phase === 'input';
+          const cx = pos[0] * scale;
+          const cy = pos[1] * scale;
+          const r = (CONTAINER_SIZE / 2) * scale;
+
           return (
-            <motion.button
-              key={index}
-              animate={{
-                scale: isActive ? 1.2 : 1,
-                boxShadow: isActive
-                  ? `0 0 30px ${SWITCH_COLORS[index % SWITCH_COLORS.length]}`
-                  : '0 4px 10px rgba(0,0,0,0.3)',
-              }}
-              whileHover={phase === 'input' ? { scale: 1.1 } : {}}
-              whileTap={phase === 'input' ? { scale: 0.95 } : {}}
-              onClick={() => handleSwitchClick(index)}
-              style={{
-                position: 'absolute',
-                left: pos.x - 35,
-                top: pos.y - 35,
-                width: '70px',
-                height: '70px',
-                borderRadius: '50%',
-                background: isActive
-                  ? SWITCH_COLORS[index % SWITCH_COLORS.length]
-                  : `linear-gradient(180deg, ${SWITCH_COLORS[index % SWITCH_COLORS.length]}88, ${SWITCH_COLORS[index % SWITCH_COLORS.length]}44)`,
-                border: `4px solid ${SWITCH_COLORS[index % SWITCH_COLORS.length]}`,
-                cursor: phase === 'input' ? 'pointer' : 'default',
-              }}
-            />
+            <React.Fragment key={idx}>
+              {/* Red/active circle overlay */}
+              {(isLit || isActive) && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: cx - r,
+                    top: cy - r,
+                    width: r * 2,
+                    height: r * 2,
+                    borderRadius: '50%',
+                    border: `${Math.max(8 * scale, 4)}px solid ${isLit ? '#E53935' : '#43A047'}`,
+                    background: isLit ? 'rgba(229,57,53,0.15)' : 'transparent',
+                    transition: isLit ? 'none' : 'border-color 0.2s',
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                  }}
+                />
+              )}
+
+              {/* Switch sprite */}
+              <div
+                onClick={() => handleSwitchClick(idx)}
+                style={{
+                  position: 'absolute',
+                  left: cx - (switchInfo.w * scale * 0.45),
+                  top: cy - (switchInfo.h * scale * 0.45),
+                  width: switchInfo.w * scale * 0.9,
+                  height: switchInfo.h * scale * 0.9,
+                  cursor: phase === 'input' && clickable ? 'pointer' : 'default',
+                  zIndex: isLit ? 5 : 2,
+                  transform: isLit ? 'scale(1.15)' : 'scale(1)',
+                  transition: 'transform 0.15s ease-out',
+                  filter: isLit ? 'brightness(1.3) saturate(1.4)' : 'none',
+                }}
+              >
+                <img
+                  src={`/sprites/${switchInfo.sprite}/1.png`}
+                  alt=""
+                  draggable={false}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    pointerEvents: 'none',
+                  }}
+                />
+              </div>
+            </React.Fragment>
           );
         })}
-        
-        {/* Center indicator */}
-        <div style={{
-          position: 'absolute',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontSize: '40px',
-        }}>
-          🧠
-        </div>
       </div>
     </div>
   );

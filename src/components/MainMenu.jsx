@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { playSound } from '../utils/sounds';
+import Character from './Character';
 
 function MainMenu({ onStartFullTest, onStartPractice, allGames, soundEnabled, onToggleSound }) {
   const [showPractice, setShowPractice] = useState(false);
@@ -12,178 +13,152 @@ function MainMenu({ onStartFullTest, onStartPractice, allGames, soundEnabled, on
 
   return (
     <motion.div
-      className="game-canvas"
+      className="main-menu"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        background: 'linear-gradient(180deg, #1a237e 0%, #0d1b2a 100%)',
-      }}
     >
       {/* Title */}
-      <motion.div
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, type: 'spring' }}
-        style={{ textAlign: 'center', marginBottom: '40px' }}
-      >
-        <h1 style={{
-          fontFamily: 'Baveuse, cursive',
-          fontSize: '42px',
-          color: '#ffd700',
-          textShadow: '3px 3px 6px rgba(0,0,0,0.5)',
-          marginBottom: '10px',
-        }}>
-          Who Has The
-        </h1>
-        <h1 style={{
-          fontFamily: 'Baveuse, cursive',
-          fontSize: '56px',
-          color: '#fff',
-          textShadow: '3px 3px 6px rgba(0,0,0,0.5)',
-        }}>
-          BIGGEST BRAIN?
-        </h1>
-        <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          style={{ fontSize: '60px', marginTop: '10px' }}
-        >
-          🧠
-        </motion.div>
-      </motion.div>
+      <div className="menu-title">
+        <div className="title-top">WHO HAS THE BIGGEST</div>
+        <div className="title-brain">BRAIN?</div>
+      </div>
+
+      {/* Pro Player Club Banner */}
+      <div className="pro-banner">★ PRO PLAYER CLUB ★</div>
 
       {!showPractice ? (
         /* Main Menu Buttons */
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}
-        >
+        <div className="menu-buttons">
+          {/* PLAY button */}
           <motion.button
-            className="game-button primary"
-            whileHover={{ scale: 1.05 }}
+            className="menu-btn"
+            whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleButtonClick(onStartFullTest)}
           >
-            🎯 Full Brain Test
-          </motion.button>
-          
-          <motion.button
-            className="game-button secondary"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => handleButtonClick(() => setShowPractice(true))}
-          >
-            📝 Practice Game
+            <div className="play-icons">
+              <div className="play-icon-circle" style={{ background: '#E85B8A' }}>⚙</div>
+              <div className="play-icon-circle" style={{ background: '#E8C840' }}>3</div>
+              <div className="play-icon-circle" style={{ background: '#4A90D9' }}>👁</div>
+              <div className="play-icon-circle" style={{ background: '#5BAA5B' }}>📋</div>
+            </div>
+            <div className="menu-btn-label">PLAY</div>
           </motion.button>
 
+          {/* CHALLENGE button */}
           <motion.button
-            style={{
-              background: 'transparent',
-              border: '2px solid rgba(255,255,255,0.3)',
-              color: 'white',
-              padding: '10px 20px',
-              borderRadius: '20px',
-              cursor: 'pointer',
-              fontFamily: 'Baveuse, cursive',
-              fontSize: '18px',
-            }}
-            whileHover={{ scale: 1.05, borderColor: 'rgba(255,255,255,0.6)' }}
+            className="menu-btn"
+            whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => handleButtonClick(onToggleSound)}
+            onClick={() => handleButtonClick(onStartFullTest)}
           >
-            {soundEnabled ? '🔊 Sound On' : '🔇 Sound Off'}
+            <div className="menu-btn-icon">🥊</div>
+            <div className="menu-btn-label">CHALLENGE</div>
           </motion.button>
-        </motion.div>
+
+          {/* INVITE button */}
+          <motion.button
+            className="menu-btn"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleButtonClick(() => {})}
+          >
+            <div className="menu-btn-icon">👫</div>
+            <div className="menu-btn-label">INVITE</div>
+          </motion.button>
+
+          {/* TROPHIES button */}
+          <motion.button
+            className="menu-btn"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleButtonClick(() => {})}
+          >
+            <div className="menu-btn-icon">🏆</div>
+            <div className="menu-btn-label">TROPHIES</div>
+          </motion.button>
+
+          {/* PROFILE button */}
+          <motion.button
+            className="menu-btn"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleButtonClick(() => {})}
+          >
+            <div className="menu-btn-icon">🪪</div>
+            <div className="menu-btn-label">PROFILE</div>
+          </motion.button>
+        </div>
       ) : (
-        /* Practice Mode Game Selection */
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            maxHeight: '300px',
-            overflowY: 'auto',
-            padding: '10px',
-          }}
-        >
-          <h2 style={{
-            fontFamily: 'Baveuse, cursive',
-            fontSize: '24px',
-            color: '#ffd700',
-            marginBottom: '15px',
-          }}>
-            Select a Game
-          </h2>
-          
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '10px',
-            marginBottom: '15px',
-          }}>
+        /* Practice Mode Selection */
+        <div className="practice-overlay">
+          <h2>Select a Game</h2>
+          <div className="practice-grid">
             {allGames.map((game) => (
-              <motion.button
+              <button
                 key={game}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className="practice-game-btn"
                 onClick={() => handleButtonClick(() => onStartPractice(game))}
-                style={{
-                  padding: '12px 20px',
-                  fontFamily: 'Baveuse, cursive',
-                  fontSize: '14px',
-                  background: 'linear-gradient(180deg, #4fc3f7, #0288d1)',
-                  border: 'none',
-                  borderRadius: '10px',
-                  color: 'white',
-                  cursor: 'pointer',
-                }}
               >
                 {game}
-              </motion.button>
+              </button>
             ))}
           </div>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
+            className="back-btn"
             onClick={() => handleButtonClick(() => setShowPractice(false))}
-            style={{
-              padding: '10px 30px',
-              fontFamily: 'Baveuse, cursive',
-              fontSize: '16px',
-              background: 'rgba(255,255,255,0.1)',
-              border: '2px solid rgba(255,255,255,0.3)',
-              borderRadius: '20px',
-              color: 'white',
-              cursor: 'pointer',
-            }}
           >
             ← Back
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
       )}
 
-      {/* Version */}
-      <div style={{
-        position: 'absolute',
-        bottom: '10px',
-        right: '15px',
-        fontSize: '12px',
-        color: 'rgba(255,255,255,0.4)',
-        fontFamily: 'Arial, sans-serif',
-      }}>
-        v2.6.7-react
-      </div>
+      {/* Sound toggle */}
+      <motion.button
+        style={{
+          position: 'absolute',
+          bottom: 30,
+          left: 15,
+          background: 'transparent',
+          border: 'none',
+          color: 'rgba(255,255,255,0.6)',
+          cursor: 'pointer',
+          fontSize: '20px',
+          zIndex: 5,
+        }}
+        whileHover={{ scale: 1.1 }}
+        onClick={() => handleButtonClick(onToggleSound)}
+      >
+        {soundEnabled ? '🔊' : '🔇'}
+      </motion.button>
+
+      {/* Practice button (small, bottom) */}
+      {!showPractice && (
+        <motion.button
+          style={{
+            position: 'absolute',
+            bottom: 30,
+            left: 50,
+            background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.6)',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontFamily: "'Bubblegum Sans', sans-serif",
+            padding: '4px 12px',
+            borderRadius: '10px',
+            zIndex: 5,
+          }}
+          whileHover={{ scale: 1.05 }}
+          onClick={() => handleButtonClick(() => setShowPractice(true))}
+        >
+          Practice
+        </motion.button>
+      )}
+
+      {/* Character */}
+      <Character message="Welcome! Got a big BRAIN? Play Who Has The Biggest Brain? to find out!" />
     </motion.div>
   );
 }

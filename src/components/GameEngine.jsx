@@ -32,65 +32,128 @@ const GAME_COMPONENTS = {
   WeightGame,
 };
 
+const GAME_INSTRUCTIONS = {
+  WeightGame: 'Select the HEAVIEST ITEM on the scales. TAP the item to answer.',
+  Calculate: 'Solve the math problem as fast as you can!',
+  CarPath: 'Find the correct path for the car.',
+  CubeCounter: 'Count all the cubes in the structure.',
+  JigsawMatch: 'Find the matching jigsaw piece.',
+  MatchCard: 'Match the pairs of cards.',
+  MathCombination: 'Find the numbers that add up to the target.',
+  MemorySequence: 'Remember and repeat the sequence.',
+  MeteorSequence: 'Tap the meteors in order.',
+  MissingSign: 'Find the missing math sign.',
+  SequenceMatch: 'Complete the sequence pattern.',
+  ShapeOrder: 'Put the shapes in the correct order.',
+};
+
 const TOTAL_GAME_TIME = 60000; // 60 seconds
 
+/* ─── OG-style red circle timer with pie-chart depletion ─── */
+function PieTimer({ timeRemaining, totalTime }) {
+  const seconds = Math.ceil(timeRemaining / 1000);
+  const fraction = timeRemaining / totalTime; // 1 → 0
+  // Conic gradient: red portion shrinks clockwise as time depletes
+  const degrees = fraction * 360;
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: '12px',
+      left: '12px',
+      zIndex: 20,
+      width: '56px',
+      height: '56px',
+      borderRadius: '50%',
+      background: `conic-gradient(#E03030 0deg, #E03030 ${degrees}deg, #3a1515 ${degrees}deg, #3a1515 360deg)`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+      border: '3px solid #b02020',
+    }}>
+      <span style={{
+        fontFamily: 'Baveuse, sans-serif',
+        fontSize: '22px',
+        fontWeight: 'bold',
+        color: '#fff',
+        textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+        lineHeight: 1,
+        userSelect: 'none',
+      }}>
+        {seconds}
+      </span>
+    </div>
+  );
+}
+
+/* ─── OG-style power / exit button (top-right) ─── */
+function PowerButton({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'absolute',
+        top: '12px',
+        right: '12px',
+        zIndex: 20,
+        width: '38px',
+        height: '38px',
+        borderRadius: '50%',
+        border: '2px solid #c04040',
+        background: 'radial-gradient(circle at 40% 35%, #f07070, #c04040)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        padding: 0,
+      }}
+      title="Exit"
+    >
+      {/* Power icon via SVG */}
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+        <path d="M12 2v8" />
+        <path d="M16.24 5.76a8 8 0 1 1-8.48 0" />
+      </svg>
+    </button>
+  );
+}
+
 function GameEngine({ gameName, gameIndex, totalGames, onGameComplete, practiceMode }) {
-  const [phase, setPhase] = useState('countdown'); // countdown, playing, timeup
-  const [countdown, setCountdown] = useState(3);
+  const [phase, setPhase] = useState('tutorial'); // tutorial, playing, timeup
   const [timeRemaining, setTimeRemaining] = useState(TOTAL_GAME_TIME);
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [incorrectCount, setIncorrectCount] = useState(0);
-  const [feedback, setFeedback] = useState(null); // 'correct' | 'wrong' | null
-  
+  const [feedback, setFeedback] = useState(null);
+
   const timerRef = useRef(null);
   const lastTickRef = useRef(null);
-
-  // Countdown phase
-  useEffect(() => {
-    if (phase === 'countdown') {
-      if (countdown > 0) {
-        const timer = setTimeout(() => {
-          setCountdown(countdown - 1);
-          playSound('timerSound');
-        }, 1000);
-        return () => clearTimeout(timer);
-      } else {
-        setPhase('playing');
-        playSound('startSound');
-        playSound('ingameMusic', true);
-        lastTickRef.current = Date.now();
-      }
-    }
-  }, [phase, countdown]);
 
   // Game timer
   useEffect(() => {
     if (phase === 'playing') {
+      lastTickRef.current = Date.now();
       timerRef.current = setInterval(() => {
         const now = Date.now();
         const delta = now - lastTickRef.current;
         lastTickRef.current = now;
-        
+
         setTimeRemaining((prev) => {
           const newTime = Math.max(prev - delta, 0);
-          
-          // Warning sound in last 10 seconds
           if (newTime <= 10000 && newTime > 0 && Math.ceil(newTime / 1000) !== Math.ceil(prev / 1000)) {
             playSound('timerSound');
           }
-          
           if (newTime <= 0) {
             clearInterval(timerRef.current);
             setPhase('timeup');
             stopSound('ingameMusic');
             return 0;
           }
-          
           return newTime;
         });
       }, 100);
-      
       return () => clearInterval(timerRef.current);
     }
   }, [phase]);
@@ -111,10 +174,8 @@ function GameEngine({ gameName, gameIndex, totalGames, onGameComplete, practiceM
     }
   }, [phase, gameName, score, correctCount, incorrectCount, onGameComplete]);
 
-  // Handle answer
   const handleAnswer = useCallback((isCorrect) => {
     const points = calculateScore(gameName, isCorrect);
-    
     if (isCorrect) {
       setCorrectCount((c) => c + 1);
       setFeedback('correct');
@@ -124,81 +185,162 @@ function GameEngine({ gameName, gameIndex, totalGames, onGameComplete, practiceM
       setFeedback('wrong');
       playSound('wrong');
     }
-    
     setScore((s) => Math.max(s + points, 0));
-    
-    // Clear feedback after animation
     setTimeout(() => setFeedback(null), 300);
   }, [gameName]);
 
+  const startGame = () => {
+    setPhase('playing');
+    playSound('startSound');
+    playSound('ingameMusic', true);
+  };
+
   const GameComponent = GAME_COMPONENTS[gameName];
-  const timerPercent = (timeRemaining / TOTAL_GAME_TIME) * 100;
+  const instructions = GAME_INSTRUCTIONS[gameName] || 'Get ready!';
 
   return (
-    <div className="game-canvas" style={{ position: 'relative' }}>
-      {/* Timer bar */}
-      {phase === 'playing' && (
-        <div className="timer-bar">
-          <motion.div
-            className="timer-bar-fill"
-            style={{ width: `${timerPercent}%` }}
-          />
-        </div>
-      )}
-
-      {/* Score display */}
-      {phase === 'playing' && (
-        <div className="score-display">
-          {score}
-        </div>
-      )}
-
-      {/* Game progress indicator */}
-      {!practiceMode && phase === 'playing' && (
+    <div className="game-canvas" style={{
+      position: 'relative',
+      background: 'linear-gradient(170deg, #FDE8E0 0%, #F5D0C0 100%)',
+      overflow: 'hidden',
+    }}>
+      {/* Decorative background rays (OG swirl/ray pattern) */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}>
         <div style={{
           position: 'absolute',
-          top: '20px',
-          left: '20px',
-          fontFamily: 'Baveuse, cursive',
-          fontSize: '18px',
-          color: 'rgba(255,255,255,0.7)',
-        }}>
-          Game {gameIndex + 1}/{totalGames}
-        </div>
-      )}
+          top: '30%',
+          left: '55%',
+          width: '600px',
+          height: '600px',
+          transform: 'translate(-50%, -50%)',
+          background: `conic-gradient(
+            from 0deg,
+            rgba(255,255,255,0.12) 0deg, rgba(255,255,255,0) 25deg,
+            rgba(255,255,255,0.10) 50deg, rgba(255,255,255,0) 75deg,
+            rgba(255,255,255,0.12) 100deg, rgba(255,255,255,0) 130deg,
+            rgba(255,255,255,0.08) 160deg, rgba(255,255,255,0) 190deg,
+            rgba(255,255,255,0.12) 220deg, rgba(255,255,255,0) 250deg,
+            rgba(255,255,255,0.10) 280deg, rgba(255,255,255,0) 310deg,
+            rgba(255,255,255,0.12) 340deg, rgba(255,255,255,0) 360deg
+          )`,
+          borderRadius: '50%',
+          opacity: 0.9,
+        }} />
+      </div>
 
-      {/* Time remaining */}
+      {/* HUD: Timer + Power button */}
       {phase === 'playing' && (
-        <div style={{
-          position: 'absolute',
-          top: '50px',
-          right: '20px',
-          fontFamily: 'Baveuse, cursive',
-          fontSize: '24px',
-          color: timeRemaining <= 10000 ? '#ff1744' : 'white',
-        }}>
-          {Math.ceil(timeRemaining / 1000)}s
-        </div>
+        <>
+          <PieTimer timeRemaining={timeRemaining} totalTime={TOTAL_GAME_TIME} />
+          <PowerButton onClick={() => {
+            clearInterval(timerRef.current);
+            stopSound('ingameMusic');
+            onGameComplete({
+              gameName,
+              category: GAME_CATEGORIES[gameName],
+              score,
+              correct: correctCount,
+              incorrect: incorrectCount,
+            });
+          }} />
+        </>
       )}
 
-      {/* Countdown overlay */}
+      {/* Tutorial / Ready screen (replaces 3-2-1 countdown) */}
       <AnimatePresence>
-        {phase === 'countdown' && (
+        {phase === 'tutorial' && (
           <motion.div
-            className="countdown-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 30,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <motion.div
-              key={countdown}
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 1.5, opacity: 0 }}
-              className="countdown-number"
+            {/* Power button on tutorial too */}
+            <PowerButton onClick={() => {
+              onGameComplete({
+                gameName,
+                category: GAME_CATEGORIES[gameName],
+                score: 0,
+                correct: 0,
+                incorrect: 0,
+              });
+            }} />
+
+            {/* Speech bubble + character area */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '20px',
+              maxWidth: '500px',
+            }}>
+              {/* Speech bubble */}
+              <div style={{
+                background: '#fff',
+                borderRadius: '16px',
+                padding: '24px 28px',
+                fontSize: '18px',
+                color: '#1a1a1a',
+                fontFamily: 'sans-serif',
+                lineHeight: 1.5,
+                textAlign: 'center',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                position: 'relative',
+                maxWidth: '320px',
+              }}>
+                {instructions}
+                <div style={{ marginTop: '8px', fontWeight: 'bold', fontSize: '20px' }}>Ready?</div>
+                {/* Speech bubble tail */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-12px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: '12px solid transparent',
+                  borderRight: '12px solid transparent',
+                  borderTop: '14px solid #fff',
+                }} />
+              </div>
+            </div>
+
+            {/* Green checkmark button to start */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={startGame}
+              style={{
+                marginTop: '32px',
+                width: '64px',
+                height: '64px',
+                borderRadius: '14px',
+                border: 'none',
+                background: 'linear-gradient(180deg, #4ade80, #22c55e)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(34,197,94,0.4)',
+                fontSize: '32px',
+                color: '#fff',
+              }}
             >
-              {countdown === 0 ? 'GO!' : countdown}
-            </motion.div>
+              ✓
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -210,14 +352,20 @@ function GameEngine({ gameName, gameIndex, totalGames, onGameComplete, practiceM
             className="countdown-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 40,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              style={{
-                textAlign: 'center',
-                color: '#ffd700',
-              }}
+              style={{ textAlign: 'center', color: '#ffd700' }}
             >
               <div style={{ fontSize: '48px', fontFamily: 'Baveuse, cursive' }}>
                 Time's Up!
@@ -252,6 +400,7 @@ function GameEngine({ gameName, gameIndex, totalGames, onGameComplete, practiceM
             <span style={{
               fontSize: '80px',
               filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))',
+              color: feedback === 'correct' ? '#22c55e' : '#ef4444',
             }}>
               {feedback === 'correct' ? '✓' : '✗'}
             </span>
@@ -264,8 +413,8 @@ function GameEngine({ gameName, gameIndex, totalGames, onGameComplete, practiceM
         <div style={{
           width: '100%',
           height: '100%',
-          paddingTop: '80px',
-          paddingBottom: '20px',
+          position: 'relative',
+          zIndex: 1,
         }}>
           <GameComponent
             onAnswer={handleAnswer}

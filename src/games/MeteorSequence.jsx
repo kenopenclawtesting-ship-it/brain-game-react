@@ -1,185 +1,228 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
 
 // MeteorSequence - Click floating meteors in ascending order
-// From SOURCE.md:
-// - At round 2 (25% chance): Shows LETTERS (A-Z) instead of numbers
-// - At round 6+: Shows NUMBER WORDS ("THREE", "FIVE") instead of digits
-// - Meteors BOUNCE off each other
+// Original sprites: 5 meteor types (Meteor1-5) with different colors
+// Pink, Green, Yellow, Blue, Grey
 
-const NUMBER_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN'];
+const METEOR_SPRITES = [
+  '/sprites/DefineSprite_597_Meteor1/1.png',  // Pink
+  '/sprites/DefineSprite_593_Meteor2/1.png',  // Green
+  '/sprites/DefineSprite_589_Meteor3/1.png',  // Yellow
+  '/sprites/DefineSprite_608_Meteor4/1.png',  // Blue
+  '/sprites/DefineSprite_603_Meteor5/1.png',  // Grey
+];
+
+const NUMBER_WORDS = [
+  'ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE',
+  'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN',
+];
+
+const GAME_W = 640;
+const GAME_H = 400;
+const METEOR_SIZE = 80;
+const METEOR_RADIUS = 40;
 
 function MeteorSequence({ onAnswer, totalCorrect }) {
   const [meteors, setMeteors] = useState([]);
-  const [clickedOrder, setClickedOrder] = useState([]);
   const [nextExpected, setNextExpected] = useState(0);
-  const [displayMode, setDisplayMode] = useState('numbers'); // numbers, letters, words
-  const containerRef = useRef(null);
-  const animationRef = useRef(null);
+  const [displayMode, setDisplayMode] = useState('numbers');
+  const [flash, setFlash] = useState(null); // {id, type: 'correct'|'wrong'}
+  const meteorsRef = useRef([]);
+  const animFrameRef = useRef(null);
+  const nextExpectedRef = useRef(0);
+  const roundRef = useRef(0);
 
   const generatePuzzle = useCallback(() => {
-    const difficulty = Math.floor(totalCorrect / 4);
-    const numMeteors = Math.min(3 + difficulty, 7);
-    const round = totalCorrect;
-    
-    // Determine display mode
+    const round = roundRef.current;
+    roundRef.current++;
+
+    // Difficulty from SOURCE.md section 8.6
+    const numMeteors = Math.min(3 + Math.floor(totalCorrect / 4), 6);
+    const maxNumber = Math.min(15 + totalCorrect * 5, 100);
+    const rotSpeed = Math.min(1 + Math.floor(totalCorrect / 4), 5);
+
+    // Display mode logic from SOURCE.md
     let mode = 'numbers';
-    if (round >= 6 && Math.random() < 0.5) {
+    if (round >= 6) {
       mode = 'words';
     } else if (round >= 2 && Math.random() < 0.25) {
       mode = 'letters';
     }
     setDisplayMode(mode);
-    
+
     let values;
     if (mode === 'letters') {
-      // Generate unique random letters
       const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-      const shuffled = letters.sort(() => Math.random() - 0.5);
+      const shuffled = [...letters].sort(() => Math.random() - 0.5);
       values = shuffled.slice(0, numMeteors).sort();
-    } else {
-      // Generate unique random numbers
-      const maxNumber = mode === 'words' 
-        ? Math.min(10, numMeteors + 3) 
-        : Math.min(15 + totalCorrect * 5, 50);
-      const numbers = new Set();
-      while (numbers.size < numMeteors) {
-        const num = mode === 'words' 
-          ? Math.floor(Math.random() * Math.min(11, maxNumber))
-          : Math.floor(Math.random() * maxNumber) + 1;
-        numbers.add(num);
+    } else if (mode === 'words') {
+      // Number words: 0-10
+      const nums = new Set();
+      while (nums.size < numMeteors) {
+        nums.add(Math.floor(Math.random() * 11));
       }
-      values = Array.from(numbers).sort((a, b) => a - b);
+      values = Array.from(nums).sort((a, b) => a - b);
+    } else {
+      const nums = new Set();
+      while (nums.size < numMeteors) {
+        nums.add(Math.floor(Math.random() * maxNumber) + 1);
+      }
+      values = Array.from(nums).sort((a, b) => a - b);
     }
-    
-    // Create meteors with random positions and velocities
-    const newMeteors = values.map((value, index) => ({
-      id: index,
-      value,
-      displayValue: mode === 'words' ? NUMBER_WORDS[value] : value,
-      x: 50 + Math.random() * 250,
-      y: 30 + Math.random() * 180,
-      vx: (Math.random() - 0.5) * 3,
-      vy: (Math.random() - 0.5) * 3,
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 4,
-      clicked: false,
-      radius: 25,
-    }));
-    
-    setMeteors(newMeteors);
-    setClickedOrder([]);
+
+    // Place meteors without overlap
+    const newMeteors = [];
+    for (let i = 0; i < values.length; i++) {
+      let x, y, attempts = 0;
+      do {
+        x = METEOR_RADIUS + Math.random() * (GAME_W - METEOR_SIZE);
+        y = METEOR_RADIUS + Math.random() * (GAME_H - METEOR_SIZE);
+        attempts++;
+      } while (
+        attempts < 50 &&
+        newMeteors.some(m => Math.hypot(m.x - x, m.y - y) < METEOR_SIZE)
+      );
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 1.5;
+      newMeteors.push({
+        id: i,
+        value: values[i],
+        displayValue: mode === 'words' ? NUMBER_WORDS[values[i]] : String(values[i]),
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * rotSpeed * 2,
+        clicked: false,
+        sprite: METEOR_SPRITES[i % METEOR_SPRITES.length],
+      });
+    }
+
+    meteorsRef.current = newMeteors;
+    setMeteors([...newMeteors]);
     setNextExpected(0);
+    nextExpectedRef.current = 0;
+    setFlash(null);
   }, [totalCorrect]);
 
   useEffect(() => {
+    roundRef.current = 0;
     generatePuzzle();
   }, [generatePuzzle]);
 
-  // Animate meteors with bouncing physics
+  // Physics animation loop
   useEffect(() => {
-    const animate = () => {
-      setMeteors(prev => {
-        const updated = prev.map(meteor => {
-          if (meteor.clicked) return meteor;
-          
-          let newX = meteor.x + meteor.vx;
-          let newY = meteor.y + meteor.vy;
-          let newVx = meteor.vx;
-          let newVy = meteor.vy;
-          
-          // Bounce off walls
-          if (newX < 30) { newX = 30; newVx = Math.abs(newVx); }
-          if (newX > 320) { newX = 320; newVx = -Math.abs(newVx); }
-          if (newY < 20) { newY = 20; newVy = Math.abs(newVy); }
-          if (newY > 220) { newY = 220; newVy = -Math.abs(newVy); }
-          
-          return {
-            ...meteor,
-            x: newX,
-            y: newY,
-            vx: newVx,
-            vy: newVy,
-            rotation: meteor.rotation + meteor.rotationSpeed,
-          };
-        });
-        
-        // Bounce meteors off each other
-        for (let i = 0; i < updated.length; i++) {
-          for (let j = i + 1; j < updated.length; j++) {
-            const m1 = updated[i];
-            const m2 = updated[j];
-            if (m1.clicked || m2.clicked) continue;
-            
-            const dx = m2.x - m1.x;
-            const dy = m2.y - m1.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const minDist = m1.radius + m2.radius;
-            
-            if (dist < minDist && dist > 0) {
-              // Collision! Swap velocities along collision axis
-              const nx = dx / dist;
-              const ny = dy / dist;
-              const dvx = m1.vx - m2.vx;
-              const dvy = m1.vy - m2.vy;
-              const dvn = dvx * nx + dvy * ny;
-              
-              if (dvn > 0) {
-                updated[i] = { ...m1, vx: m1.vx - dvn * nx, vy: m1.vy - dvn * ny };
-                updated[j] = { ...m2, vx: m2.vx + dvn * nx, vy: m2.vy + dvn * ny };
-              }
+    let lastTime = performance.now();
+
+    const animate = (now) => {
+      const dt = Math.min((now - lastTime) / 16.67, 3); // normalize to ~60fps, cap
+      lastTime = now;
+
+      const ms = meteorsRef.current;
+      for (let i = 0; i < ms.length; i++) {
+        const m = ms[i];
+        if (m.clicked) continue;
+
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+        m.rotation += m.rotationSpeed * dt;
+
+        // Wall bounce
+        if (m.x < METEOR_RADIUS) { m.x = METEOR_RADIUS; m.vx = Math.abs(m.vx); }
+        if (m.x > GAME_W - METEOR_RADIUS) { m.x = GAME_W - METEOR_RADIUS; m.vx = -Math.abs(m.vx); }
+        if (m.y < METEOR_RADIUS) { m.y = METEOR_RADIUS; m.vy = Math.abs(m.vy); }
+        if (m.y > GAME_H - METEOR_RADIUS) { m.y = GAME_H - METEOR_RADIUS; m.vy = -Math.abs(m.vy); }
+      }
+
+      // Meteor-meteor collisions
+      for (let i = 0; i < ms.length; i++) {
+        for (let j = i + 1; j < ms.length; j++) {
+          if (ms[i].clicked || ms[j].clicked) continue;
+          const dx = ms[j].x - ms[i].x;
+          const dy = ms[j].y - ms[i].y;
+          const dist = Math.hypot(dx, dy);
+          const minDist = METEOR_SIZE;
+
+          if (dist < minDist && dist > 0.1) {
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const dvn = (ms[i].vx - ms[j].vx) * nx + (ms[i].vy - ms[j].vy) * ny;
+            if (dvn > 0) {
+              ms[i].vx -= dvn * nx;
+              ms[i].vy -= dvn * ny;
+              ms[j].vx += dvn * nx;
+              ms[j].vy += dvn * ny;
             }
+            // Separate
+            const overlap = (minDist - dist) / 2;
+            ms[i].x -= overlap * nx;
+            ms[i].y -= overlap * ny;
+            ms[j].x += overlap * nx;
+            ms[j].y += overlap * ny;
           }
         }
-        
-        return updated;
-      });
-      
-      animationRef.current = requestAnimationFrame(animate);
+      }
+
+      setMeteors([...ms]);
+      animFrameRef.current = requestAnimationFrame(animate);
     };
-    
-    animationRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationRef.current);
+
+    animFrameRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animFrameRef.current);
   }, []);
 
-  const handleMeteorClick = (meteor) => {
+  const handleMeteorClick = useCallback((meteor) => {
     if (meteor.clicked) return;
-    
-    const sortedMeteors = [...meteors].sort((a, b) => {
-      if (displayMode === 'letters') {
-        return a.value.localeCompare(b.value);
-      }
-      return a.value - b.value;
-    });
-    const expectedMeteor = sortedMeteors[nextExpected];
-    
-    if (meteor.id === expectedMeteor.id) {
-      // Correct!
-      setMeteors(prev => prev.map(m => 
-        m.id === meteor.id ? { ...m, clicked: true } : m
-      ));
-      setClickedOrder(prev => [...prev, meteor.id]);
-      
-      if (nextExpected === meteors.length - 1) {
-        // All correct!
+
+    const ms = meteorsRef.current;
+    const sortedIds = [...ms]
+      .sort((a, b) => {
+        if (typeof a.value === 'string') return a.value.localeCompare(b.value);
+        return a.value - b.value;
+      })
+      .map(m => m.id);
+
+    const expected = nextExpectedRef.current;
+    if (meteor.id === sortedIds[expected]) {
+      // Correct click
+      const m = ms.find(m => m.id === meteor.id);
+      if (m) m.clicked = true;
+      meteorsRef.current = ms;
+
+      setFlash({ id: meteor.id, type: 'correct' });
+      setTimeout(() => setFlash(null), 300);
+
+      const newExpected = expected + 1;
+      nextExpectedRef.current = newExpected;
+      setNextExpected(newExpected);
+
+      if (newExpected >= ms.length) {
         onAnswer(true);
-        setTimeout(generatePuzzle, 500);
-      } else {
-        setNextExpected(nextExpected + 1);
+        setTimeout(() => generatePuzzle(), 400);
       }
     } else {
-      // Wrong!
+      // Wrong click
+      setFlash({ id: meteor.id, type: 'wrong' });
+      setTimeout(() => setFlash(null), 400);
       onAnswer(false);
-      generatePuzzle();
+      setTimeout(() => generatePuzzle(), 500);
     }
-  };
+  }, [onAnswer, generatePuzzle]);
+
+  // Stars (stable, generated once)
+  const starsRef = useRef(
+    Array.from({ length: 50 }, (_, i) => ({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 1 + Math.random() * 2,
+      opacity: 0.3 + Math.random() * 0.7,
+    }))
+  );
 
   const getModeLabel = () => {
-    switch (displayMode) {
-      case 'letters': return 'A → Z';
-      case 'words': return 'smallest → largest';
-      default: return 'smallest → largest';
-    }
+    if (displayMode === 'letters') return 'Click letters A → Z';
+    return 'Click meteors smallest → largest';
   };
 
   return (
@@ -189,97 +232,144 @@ function MeteorSequence({ onAnswer, totalCorrect }) {
       alignItems: 'center',
       justifyContent: 'center',
       height: '100%',
-      padding: '20px',
+      padding: '10px',
     }}>
+      {/* Instruction */}
       <div style={{
         fontSize: '18px',
-        color: 'rgba(255,255,255,0.9)',
-        marginBottom: '10px',
-        fontFamily: 'Baveuse, cursive',
+        color: '#2A2A2A',
+        marginBottom: '8px',
+        fontFamily: '"Bubblegum Sans", cursive',
+        textAlign: 'center',
       }}>
-        Click {displayMode === 'letters' ? 'letters' : 'meteors'} in order: {getModeLabel()} ☄️
+        {getModeLabel()}
       </div>
 
-      {/* Progress */}
+      {/* Progress dots */}
       <div style={{
-        fontSize: '16px',
-        color: '#ffd700',
-        marginBottom: '10px',
-        fontFamily: 'Baveuse, cursive',
+        display: 'flex',
+        gap: '6px',
+        marginBottom: '8px',
       }}>
-        {clickedOrder.length} / {meteors.length}
+        {meteors.map((m, i) => {
+          const sorted = [...meteors].sort((a, b) => {
+            if (typeof a.value === 'string') return a.value.localeCompare(b.value);
+            return a.value - b.value;
+          });
+          const sortIdx = sorted.findIndex(s => s.id === m.id);
+          return (
+            <div key={i} style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              background: sortIdx < nextExpected ? '#6BCB77' : '#ccc',
+              border: '2px solid #999',
+              transition: 'background 0.2s',
+            }} />
+          );
+        })}
       </div>
 
-      {/* Game area */}
-      <div
-        ref={containerRef}
-        style={{
-          position: 'relative',
-          width: '360px',
-          height: '260px',
-          background: 'linear-gradient(180deg, #0a0a20 0%, #1a1a40 100%)',
-          borderRadius: '15px',
-          border: '3px solid rgba(255,255,255,0.2)',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Stars background */}
-        {Array.from({ length: 30 }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: Math.random() * 360,
-              top: Math.random() * 260,
-              width: '2px',
-              height: '2px',
-              background: 'white',
-              borderRadius: '50%',
-              opacity: 0.3 + Math.random() * 0.7,
-            }}
-          />
+      {/* Game area - space background */}
+      <div style={{
+        position: 'relative',
+        width: `${GAME_W}px`,
+        height: `${GAME_H}px`,
+        maxWidth: '100%',
+        background: 'linear-gradient(180deg, #0B0B2E 0%, #1B1B4B 50%, #0B0B2E 100%)',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        cursor: 'default',
+        boxShadow: 'inset 0 0 60px rgba(0,0,0,0.5)',
+      }}>
+        {/* Stars */}
+        {starsRef.current.map((star, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            background: 'white',
+            borderRadius: '50%',
+            opacity: star.opacity,
+            pointerEvents: 'none',
+          }} />
         ))}
-        
+
         {/* Meteors */}
-        {meteors.map((meteor) => (
-          <motion.button
-            key={meteor.id}
-            animate={{
-              x: meteor.x - 25,
-              y: meteor.y - 25,
-              rotate: meteor.rotation,
-              scale: meteor.clicked ? 0 : 1,
-              opacity: meteor.clicked ? 0 : 1,
-            }}
-            transition={{ type: 'tween', duration: 0.05 }}
-            whileHover={!meteor.clicked ? { scale: 1.2 } : {}}
-            onClick={() => handleMeteorClick(meteor)}
-            style={{
-              position: 'absolute',
-              width: '50px',
-              height: '50px',
-              borderRadius: '50%',
-              background: meteor.clicked
-                ? 'transparent'
-                : 'radial-gradient(circle at 30% 30%, #8b7355, #4a3728)',
-              border: meteor.clicked ? 'none' : '2px solid #a08060',
-              cursor: meteor.clicked ? 'default' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: 'Baveuse, cursive',
-              fontSize: displayMode === 'words' ? '10px' : '16px',
-              color: 'white',
-              textShadow: '1px 1px 2px black',
-              boxShadow: meteor.clicked ? 'none' : '0 0 15px rgba(255, 150, 50, 0.5)',
-              padding: '2px',
-              textAlign: 'center',
-              lineHeight: '1.1',
-            }}
-          >
-            {!meteor.clicked && meteor.displayValue}
-          </motion.button>
-        ))}
+        {meteors.map((meteor) => {
+          const isFlashCorrect = flash && flash.id === meteor.id && flash.type === 'correct';
+          const isFlashWrong = flash && flash.id === meteor.id && flash.type === 'wrong';
+
+          if (meteor.clicked && !isFlashCorrect) return null;
+
+          return (
+            <div
+              key={meteor.id}
+              onClick={() => handleMeteorClick(meteor)}
+              style={{
+                position: 'absolute',
+                left: `${meteor.x - METEOR_RADIUS}px`,
+                top: `${meteor.y - METEOR_RADIUS}px`,
+                width: `${METEOR_SIZE}px`,
+                height: `${METEOR_SIZE}px`,
+                cursor: meteor.clicked ? 'default' : 'pointer',
+                transform: `rotate(${meteor.rotation}deg)`,
+                transition: isFlashCorrect ? 'opacity 0.3s, transform 0.3s' : 'none',
+                opacity: isFlashCorrect ? 0 : 1,
+                filter: isFlashWrong
+                  ? 'brightness(1.5) drop-shadow(0 0 10px red)'
+                  : isFlashCorrect
+                  ? 'brightness(1.5) drop-shadow(0 0 10px lime)'
+                  : 'drop-shadow(2px 4px 8px rgba(0,0,0,0.5))',
+                userSelect: 'none',
+              }}
+            >
+              {/* Meteor sprite */}
+              <img
+                src={meteor.sprite}
+                alt=""
+                draggable={false}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  pointerEvents: 'none',
+                }}
+              />
+              {/* Number/letter overlay - counter-rotate so text stays readable */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transform: `rotate(${-meteor.rotation}deg)`,
+                pointerEvents: 'none',
+              }}>
+                <span style={{
+                  fontFamily: '"Luckiest Guy", cursive',
+                  fontSize: displayMode === 'words'
+                    ? (meteor.displayValue.length > 4 ? '12px' : '14px')
+                    : '22px',
+                  color: '#1a1a1a',
+                  textShadow: 'none',
+                  fontWeight: 'bold',
+                  letterSpacing: '0.5px',
+                  lineHeight: 1,
+                  textAlign: 'center',
+                  padding: '2px',
+                }}>
+                  {meteor.displayValue}
+                </span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
