@@ -1,78 +1,84 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { playSound } from '../utils/sounds';
-import Character from './Character';
 
-// OG layout: 3 columns × 4 rows, grouped by category
-// Row 1 (Analyse - pink): Weight, Cubes, CarPath
-// Row 2 (Calculate - yellow): Calculate, MissingSign, MathCombination
-// Row 3 (Identify - green): MatchCard, MemorySequence, MeteorSequence
-// Row 4 (Memorize - blue): ShapeOrder, JigsawMatch, SequenceMatch
+// Game order matches the Flash practice grid (3×4)
 const GAMES = [
-  { name: 'WeightGame', sprite: 'sprites/DefineSprite_208_brain_game_fla.IconWeight_83/1.png' },
-  { name: 'CubeCounter', sprite: 'sprites/DefineSprite_203_brain_game_fla.IconCubes_77/1.png' },
-  { name: 'CarPath', sprite: 'sprites/DefineSprite_246_brain_game_fla.IconCarPath_74/1.png' },
-  { name: 'Calculate', sprite: 'sprites/DefineSprite_230_brain_game_fla.IconSum_75/1.png' },
-  { name: 'MissingSign', sprite: 'sprites/DefineSprite_197_brain_game_fla.IconSign_79/1.png' },
-  { name: 'MathCombination', sprite: 'sprites/DefineSprite_192_brain_game_fla.IconPattern_82/1.png' },
-  { name: 'MatchCard', sprite: 'sprites/DefineSprite_186_brain_game_fla.IconCards_81/1.png' },
-  { name: 'MemorySequence', sprite: 'sprites/DefineSprite_241_brain_game_fla.IconMemSeq_72/1.png' },
-  { name: 'MeteorSequence', sprite: 'sprites/DefineSprite_214_brain_game_fla.IconMeteor_84/1.png' },
-  { name: 'ShapeOrder', sprite: 'sprites/DefineSprite_181_brain_game_fla.IconShape_78/1.png' },
-  { name: 'JigsawMatch', sprite: 'sprites/DefineSprite_219_brain_game_fla.IconPuzzle_80/1.png' },
-  { name: 'SequenceMatch', sprite: 'sprites/DefineSprite_235_brain_game_fla.IconSequenceMatch_76/1.png' },
+  'WeightGame', 'CubeCounter', 'CarPath',
+  'Calculate', 'MissingSign', 'MathCombination',
+  'MatchCard', 'MemorySequence', 'MeteorSequence',
+  'ShapeOrder', 'JigsawMatch', 'SequenceMatch',
 ];
 
+/*
+ * Practice Select - Option C: pre-rendered Flash practice grid as background
+ * with invisible click zones over each game icon
+ */
 function PracticeSelect({ onSelectGame, onBack }) {
   const click = (fn) => () => { playSound('buttonMenu'); fn(); };
 
+  // Grid dimensions matching the Flash practice-grid.png
+  // The image is 340px wide, positioned in the stage
+  const gridLeft = 35;
+  const gridTop = 22;
+  const cellW = 108;
+  const cellH = 96;
+  const cols = 3;
+
   return (
     <motion.div
-      className="practice-select"
+      style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      style={{ width: '100%', height: '100%', position: 'relative' }}
     >
+      {/* Stage background */}
+      <img src="/img/stage-bg.png" alt="" style={{
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+        objectFit: 'cover', pointerEvents: 'none', zIndex: 0,
+      }} draggable={false} />
+
       {/* Smoky overlay */}
-      <div className="smoky-overlay" />
+      <div style={{
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+        background: 'rgba(0,0,0,0.4)', zIndex: 1,
+      }} />
+
+      {/* Practice grid - pre-rendered Flash icons */}
+      <img src="/img/practice-grid.png" alt="" style={{
+        position: 'absolute', top: gridTop, left: gridLeft,
+        width: 340, pointerEvents: 'none', zIndex: 2,
+      }} draggable={false} />
+
+      {/* Click zones over each icon */}
+      {GAMES.map((game, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        return (
+          <motion.div
+            key={game}
+            className="practice-icon"
+            onClick={click(() => onSelectGame(game))}
+            whileHover={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+            whileTap={{ scale: 0.92 }}
+            style={{
+              position: 'absolute',
+              left: gridLeft + col * (340 / cols) + 8,
+              top: gridTop + row * (380 / 4) + 5,
+              width: 95,
+              height: 85,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              zIndex: 3,
+            }}
+          />
+        );
+      })}
 
       {/* Back button */}
-      <motion.img
-        src="/sprites/DefineSprite_1184_ButtonBack/1.png"
-        alt="Back"
-        className="back-btn-sprite"
+      <motion.img src="/img/btn-back.png" alt="Back"
         onClick={click(onBack)}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        draggable={false}
-      />
-
-      {/* 4x3 grid of game icons */}
-      <div className="practice-grid">
-        {GAMES.map((game, i) => (
-          <motion.div
-            key={game.name}
-            className="practice-icon"
-            onClick={click(() => onSelectGame(game.name))}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 20 }}
-            whileHover={{ scale: 1.12 }}
-            whileTap={{ scale: 0.92 }}
-          >
-            <img
-              src={`/${game.sprite}`}
-              alt={game.name}
-              draggable={false}
-              style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
-            />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Character */}
-      <div style={{ position: 'absolute', right: 5, bottom: 10, transform: 'scale(0.55)', transformOrigin: 'bottom right', zIndex: 2 }}>
-        <Character message="Choose the minigame you would like to practice" />
-      </div>
+        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+        style={{ position: 'absolute', top: 8, left: 8, width: 55, cursor: 'pointer', zIndex: 5 }}
+        draggable={false} />
     </motion.div>
   );
 }

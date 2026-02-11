@@ -44,99 +44,89 @@ function PlatformItems({ groupIdx, itemFrames, size = 44 }) {
 
 // OG Flash-style balance scale
 function Scale({ leftItems, rightItems, groupIdx, tiltDirection, compact = false }) {
-  const tiltAngle = tiltDirection === 'left' ? -12 : tiltDirection === 'right' ? 12 : 0;
+  // OG uses subtle ~8° tilt
+  const tiltAngle = tiltDirection === 'left' ? -8 : tiltDirection === 'right' ? 8 : 0;
   const s = compact ? 0.6 : 1;
 
-  const beamWidth = Math.round(240 * s);
-  const halfBeam = beamWidth / 2;
-  const beamThick = Math.round(6 * s);
-  const trayW = Math.round(85 * s);
-  const trayH = Math.round(8 * s);
-  const itemSize = Math.round(55 * s);
-  const fulcrumBottomW = Math.round(48 * s);
-  const fulcrumTopW = Math.round(8 * s);
-  const fulcrumH = Math.round(45 * s);
-  const pivotD = Math.round(14 * s);
-  const pivotR = pivotD / 2;
+  const beamW = Math.round(260 * s);
+  const beamH = Math.round(5 * s);
+  const trayW = Math.round(90 * s);
+  const trayH = Math.round(6 * s);
+  const armH = Math.round(18 * s);  // vertical connector from beam to tray
+  const itemSz = Math.round(55 * s);
+  const fulcrumW = Math.round(40 * s);
+  const fulcrumH = Math.round(38 * s);
+  const pivotR = Math.round(6 * s);
 
-  const containerW = beamWidth + trayW + 20;
-  const containerH = itemSize + trayH + beamThick + fulcrumH + pivotD + 10;
-  const pivotTop = itemSize + trayH + beamThick / 2;
+  const W = beamW + 40;
+  const H = itemSz + armH + trayH + beamH + fulcrumH + pivotR * 2 + 10;
+  const cx = W / 2;
+  // Pivot Y: leave room for items above
+  const pivotY = itemSz + armH + trayH + beamH / 2;
 
   return (
-    <div style={{ position: 'relative', width: containerW, height: containerH }}>
-      {/* Fulcrum */}
+    <div style={{ position: 'relative', width: W, height: H }}>
+      {/* Fulcrum triangle */}
       <div style={{
-        position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: fulcrumBottomW, height: fulcrumH, background: '#1A1A1A',
-        clipPath: `polygon(${(fulcrumBottomW - fulcrumTopW) / 2}px 0, ${(fulcrumBottomW + fulcrumTopW) / 2}px 0, ${fulcrumBottomW}px ${fulcrumH}px, 0 ${fulcrumH}px)`,
+        position: 'absolute', left: cx - fulcrumW / 2, top: pivotY + pivotR,
+        width: fulcrumW, height: fulcrumH, background: '#1A1A1A',
+        clipPath: `polygon(50% 0%, 100% 100%, 0% 100%)`,
       }} />
 
-      {/* White pivot circle */}
+      {/* White pivot dot */}
       <div style={{
-        position: 'absolute', top: pivotTop - pivotR, left: '50%', transform: 'translateX(-50%)',
-        width: pivotD, height: pivotD, borderRadius: '50%', background: '#fff',
-        border: `${Math.round(3 * s)}px solid #1A1A1A`, zIndex: 3, boxSizing: 'border-box',
+        position: 'absolute', left: cx - pivotR, top: pivotY - pivotR,
+        width: pivotR * 2, height: pivotR * 2, borderRadius: '50%',
+        background: '#fff', border: `${Math.round(2 * s)}px solid #1A1A1A`,
+        zIndex: 3, boxSizing: 'border-box',
       }} />
 
-      {/* Beam assembly - rotates */}
+      {/* Beam assembly - tilts around pivot */}
       <div style={{
-        position: 'absolute', top: pivotTop, left: '50%', width: beamWidth,
-        transform: `translateX(-50%) rotate(${tiltAngle}deg)`,
-        transformOrigin: 'center top', transition: 'transform 0.5s ease', zIndex: 2,
+        position: 'absolute', left: cx - beamW / 2, top: pivotY - beamH / 2,
+        width: beamW, height: 0,
+        transform: `rotate(${tiltAngle}deg)`,
+        transformOrigin: `${beamW / 2}px ${beamH / 2}px`,
+        transition: 'transform 0.5s ease', zIndex: 2,
       }}>
-        {/* Horizontal beam */}
+        {/* Beam bar */}
         <div style={{
-          position: 'absolute', top: -beamThick / 2, left: 0,
-          width: beamWidth, height: beamThick, background: '#1A1A1A', borderRadius: beamThick / 2,
+          position: 'absolute', top: 0, left: 0,
+          width: beamW, height: beamH, background: '#1A1A1A',
         }} />
 
-        {/* Vertical connectors */}
+        {/* LEFT side: arm + tray + items */}
         <div style={{
-          position: 'absolute', top: beamThick / 2, left: 0, width: Math.round(4 * s),
-          height: Math.round(20 * s), background: '#1A1A1A',
-        }} />
-        <div style={{
-          position: 'absolute', top: beamThick / 2, right: 0, width: Math.round(4 * s),
-          height: Math.round(20 * s), background: '#1A1A1A',
-        }} />
-
-        {/* Left tray + items */}
-        <div style={{
-          position: 'absolute', top: 0, left: -trayW / 2, width: trayW,
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          position: 'absolute', top: beamH, left: 0,
+          width: 0, display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
-          <div style={{
-            display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
-            minHeight: itemSize, transform: `translateY(-${trayH + beamThick / 2 + Math.round(20 * s)}px)`,
-          }}>
-            <PlatformItems groupIdx={groupIdx} itemFrames={leftItems} size={itemSize} />
-          </div>
-          <div style={{
-            width: trayW, height: trayH,
-            background: 'linear-gradient(to bottom, #333, #1A1A1A)',
-            borderRadius: `${Math.round(3 * s)}px ${Math.round(3 * s)}px 0 0`,
-            transform: `translateY(-${trayH + beamThick / 2}px)`,
-          }} />
+          {/* Vertical arm */}
+          <div style={{ width: Math.round(3 * s), height: armH, background: '#1A1A1A' }} />
+          {/* Tray */}
+          <div style={{ width: trayW, height: trayH, background: '#1A1A1A', borderRadius: 2 }} />
+        </div>
+        {/* Left items - sitting on the tray */}
+        <div style={{
+          position: 'absolute', top: beamH + armH + trayH - itemSz, left: -trayW / 2,
+          width: trayW, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+        }}>
+          <PlatformItems groupIdx={groupIdx} itemFrames={leftItems} size={itemSz} />
         </div>
 
-        {/* Right tray + items */}
+        {/* RIGHT side: arm + tray + items */}
         <div style={{
-          position: 'absolute', top: 0, right: -trayW / 2, width: trayW,
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          position: 'absolute', top: beamH, right: 0,
+          width: 0, display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
-          <div style={{
-            display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
-            minHeight: itemSize, transform: `translateY(-${trayH + beamThick / 2 + Math.round(20 * s)}px)`,
-          }}>
-            <PlatformItems groupIdx={groupIdx} itemFrames={rightItems} size={itemSize} />
-          </div>
-          <div style={{
-            width: trayW, height: trayH,
-            background: 'linear-gradient(to bottom, #333, #1A1A1A)',
-            borderRadius: `${Math.round(3 * s)}px ${Math.round(3 * s)}px 0 0`,
-            transform: `translateY(-${trayH + beamThick / 2}px)`,
-          }} />
+          <div style={{ width: Math.round(3 * s), height: armH, background: '#1A1A1A' }} />
+          <div style={{ width: trayW, height: trayH, background: '#1A1A1A', borderRadius: 2 }} />
+        </div>
+        {/* Right items - sitting on the tray */}
+        <div style={{
+          position: 'absolute', top: beamH + armH + trayH - itemSz, right: -trayW / 2,
+          width: trayW, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+        }}>
+          <PlatformItems groupIdx={groupIdx} itemFrames={rightItems} size={itemSz} />
         </div>
       </div>
     </div>
