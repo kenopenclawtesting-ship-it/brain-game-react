@@ -260,10 +260,10 @@ body {
 }
 
 /* Button positions - inside the sunburst stage area */
-.mm-play      { left: 55px;  top: 150px; }
-.mm-play img  { width: 130px; }
+.mm-play      { left: 50px;  top: 135px; }
+.mm-play img  { width: 140px; }
 
-.mm-challenge      { left: 210px; top: 155px; }
+.mm-challenge      { left: 215px; top: 140px; }
 .mm-label {
   font-family: 'Luckiest Guy', cursive;
   font-size: 18px;
@@ -274,21 +274,29 @@ body {
   margin-top: 2px;
 }
 
-.mm-invite       { left: 45px;  top: 300px; }
-.mm-invite img   { width: 100px; }
+.mm-invite       { left: 42px;  top: 280px; }
+.mm-invite img   { width: 105px; }
 
-.mm-trophies       { left: 165px; top: 300px; }
-.mm-trophies img   { width: 100px; }
+.mm-trophies       { left: 160px; top: 280px; }
+.mm-trophies img   { width: 105px; }
 
-.mm-profile       { left: 280px; top: 305px; }
-.mm-profile img   { width: 90px; }
+.mm-profile       { left: 275px; top: 285px; }
+.mm-profile img   { width: 95px; }
 
-.mm-sound-toggle {
+/* Control icons top-right */
+.mm-controls {
   position: absolute;
-  top: 0; right: 0;
-  width: 50px; height: 50px;
+  top: 55px; right: 8px;
+  display: flex; gap: 3px;
   z-index: 10;
-  cursor: pointer;
+}
+.mm-ctrl {
+  width: 36px; height: 36px;
+  background: rgba(15,20,25,0.92);
+  border-radius: 6px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: default;
 }
 
 /* ======================== */

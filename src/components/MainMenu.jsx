@@ -57,8 +57,19 @@ function MainMenu({ onStartFullTest, onStartPractice, allGames, soundEnabled, on
         <img src="/img/btn-profile.png" alt="Profile" draggable={false} />
       </motion.div>
 
-      {/* Sound toggle - invisible overlay on the stage's speaker area */}
-      <div className="mm-sound-toggle" onClick={click(onToggleSound)} />
+      {/* Top-right control icons (globe, eye, speaker) */}
+      <div className="mm-controls">
+        <div className="mm-ctrl">
+          <img src="/svg/icon-globe.svg" alt="" style={{width:22,height:22,filter:'invert(1)'}} />
+          <span style={{fontSize:6,color:'#aaa',marginTop:1}}>ENGLISH</span>
+        </div>
+        <div className="mm-ctrl">
+          <img src="/svg/icon-eye.svg" alt="" style={{width:22,height:22,filter:'invert(1)'}} />
+        </div>
+        <div className="mm-ctrl" onClick={click(onToggleSound)} style={{cursor:'pointer'}}>
+          <img src="/svg/icon-speaker.svg" alt="" style={{width:22,height:22,filter:'invert(1)',opacity:soundEnabled?1:0.4}} />
+        </div>
+      </div>
     </motion.div>
   );
 }
