@@ -230,130 +230,64 @@ body {
 }
 
 /* ======================== */
-/* MAIN MENU (SVG-based)    */
-/* ======================== */
+/* MAIN MENU (Option C: static Flash frame + positioned buttons) */
+/* ============================================================= */
 
 .main-menu {
   width: 100%;
   height: 100%;
   position: relative;
+  overflow: hidden;
 }
 
-/* Full Flash stage SVG as background */
-.mm-stage-bg {
+.mm-bg {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   object-fit: cover;
   z-index: 0;
   pointer-events: none;
 }
 
-/* Pro Player Club banner - overlay on stage */
-.mm-pro-banner {
+.mm-btn {
   position: absolute;
-  top: 155px;
-  left: 50%;
-  transform: translateX(-70%);
-  display: inline-block;
-  background: linear-gradient(180deg, #D4A830, #B8922A);
-  border: 2px solid #8B7D3C;
-  border-radius: 14px;
-  padding: 2px 20px;
-  font-family: 'Luckiest Guy', cursive;
-  font-size: 11px;
-  color: #fff;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
-  letter-spacing: 2px;
+  cursor: pointer;
   z-index: 5;
 }
-.mm-star {
-  color: var(--accent-yellow);
+.mm-btn img {
+  display: block;
+  pointer-events: none;
 }
 
-/* Top-right controls */
-.mm-controls {
-  position: absolute;
-  top: 55px;
-  right: 10px;
-  display: flex;
-  gap: 3px;
-  z-index: 10;
-}
-.mm-ctrl-btn {
-  width: 38px;
-  height: 38px;
-  background: rgba(20,25,30,0.93);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.mm-ctrl-label {
-  font-size: 7px;
-  color: rgba(255,255,255,0.7);
-  margin-top: 2px;
-  font-family: Arial, sans-serif;
-  letter-spacing: 0.5px;
-}
+/* Button positions - inside the sunburst stage area */
+.mm-play      { left: 55px;  top: 150px; }
+.mm-play img  { width: 130px; }
 
-/* Buttons overlay - positioned over the stage sunburst area */
-.mm-buttons-overlay {
-  position: absolute;
-  top: 155px;
-  left: 55px;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.mm-play-btn {
-  width: 120px;
-  cursor: pointer;
-}
-
-.mm-challenge-btn {
-  width: 100px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: absolute;
-  left: 150px;
-  top: 5px;
-}
-
-.mm-btn-label {
+.mm-challenge      { left: 210px; top: 155px; }
+.mm-label {
   font-family: 'Luckiest Guy', cursive;
-  font-size: 22px;
+  font-size: 18px;
+  color: #E83E8C;
+  text-shadow: 2px 2px 0 #6B2040, -1px -1px 0 #6B2040, 1px -1px 0 #6B2040, -1px 1px 0 #6B2040;
+  -webkit-text-stroke: 1px #6B2040;
   text-align: center;
-  line-height: 1;
-}
-.mm-btn-label-pink {
-  color: var(--title-pink);
-  text-shadow:
-    2px 2px 0 var(--title-outline),
-    3px 3px 2px rgba(0,0,0,0.3),
-    -1px -1px 0 var(--title-outline),
-    1px -1px 0 var(--title-outline),
-    -1px 1px 0 var(--title-outline);
-  -webkit-text-stroke: 1px var(--title-outline);
+  margin-top: 2px;
 }
 
-.mm-bottom-btns {
-  display: flex;
-  gap: 4px;
-  margin-top: 4px;
-}
+.mm-invite       { left: 45px;  top: 300px; }
+.mm-invite img   { width: 100px; }
 
-.mm-small-btn {
-  width: 90px;
+.mm-trophies       { left: 165px; top: 300px; }
+.mm-trophies img   { width: 100px; }
+
+.mm-profile       { left: 280px; top: 305px; }
+.mm-profile img   { width: 90px; }
+
+.mm-sound-toggle {
+  position: absolute;
+  top: 0; right: 0;
+  width: 50px; height: 50px;
+  z-index: 10;
   cursor: pointer;
 }
 

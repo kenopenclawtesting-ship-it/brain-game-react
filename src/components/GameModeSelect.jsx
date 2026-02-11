@@ -1,64 +1,79 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { playSound } from '../utils/sounds';
-import Character from './Character';
 
+/*
+ * Mode Select - Option C approach
+ * Uses pre-rendered Flash PlayMenu sprite as the visual
+ * with invisible click zones over each mode icon
+ */
 function GameModeSelect({ onClassic, onPractice, onBack }) {
   const click = (fn) => () => { playSound('buttonMenu'); fn(); };
 
   return (
     <motion.div
-      className="mode-select"
+      style={{ width: '100%', height: '100%', position: 'relative', background: '#2A3E3F' }}
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      style={{ width: '100%', height: '100%', position: 'relative' }}
     >
-      {/* Smoky overlay */}
-      <div className="smoky-overlay" />
-
-      {/* Back button - actual sprite */}
-      <motion.img
-        src="/sprites/DefineSprite_1184_ButtonBack/1.png"
-        alt="Back"
-        className="back-btn-sprite"
-        onClick={click(onBack)}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+      {/* Mode select icons - pre-rendered Flash sprite */}
+      <img
+        src="/img/mode-select.png"
+        alt=""
+        style={{
+          position: 'absolute',
+          top: '50%', left: '50%',
+          transform: 'translate(-60%, -55%)',
+          width: 380, height: 'auto',
+          pointerEvents: 'none',
+        }}
         draggable={false}
       />
 
-      {/* PlayMenu sprite as background for mode icons */}
-      <div className="mode-icons-area">
-        <img
-          src="/sprites/DefineSprite_1285_PlayMenu/1.png"
-          alt=""
-          className="mode-icons-sprite"
-          draggable={false}
-        />
-        {/* Clickable hit zones */}
-        <motion.div
-          className="mode-hit classic-hit"
-          onClick={click(onClassic)}
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
-          whileTap={{ scale: 0.95 }}
-        />
-        <motion.div
-          className="mode-hit practice-hit"
-          onClick={click(onPractice)}
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
-          whileTap={{ scale: 0.95 }}
-        />
-        <motion.div
-          className="mode-hit pro-hit"
-          onClick={click(onClassic)}
-          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
-          whileTap={{ scale: 0.95 }}
-        />
-      </div>
+      {/* Click zones over the 3 mode icons */}
+      {/* Classic (top center - pinwheel) */}
+      <motion.div
+        onClick={click(onClassic)}
+        whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+        style={{
+          position: 'absolute', top: 60, left: 200, width: 150, height: 150,
+          borderRadius: '50%', cursor: 'pointer', zIndex: 5,
+        }}
+      />
 
-      {/* Character */}
-      <div style={{ position: 'absolute', right: 5, bottom: 10, transform: 'scale(0.55)', transformOrigin: 'bottom right', zIndex: 2 }}>
-        <Character message="Choose your game mode!" />
-      </div>
+      {/* Practice (bottom left - dumbbell) */}
+      <motion.div
+        className="practice-hit"
+        onClick={click(onPractice)}
+        whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+        style={{
+          position: 'absolute', top: 210, left: 60, width: 170, height: 170,
+          borderRadius: '50%', cursor: 'pointer', zIndex: 5,
+        }}
+      />
+
+      {/* Pro (bottom right - starburst) */}
+      <motion.div
+        onClick={click(onClassic)}
+        whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+        style={{
+          position: 'absolute', top: 220, left: 280, width: 160, height: 160,
+          borderRadius: '50%', cursor: 'pointer', zIndex: 5,
+        }}
+      />
+
+      {/* Back button */}
+      <motion.img
+        src="/img/btn-back.png"
+        alt="Back"
+        onClick={click(onBack)}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        style={{
+          position: 'absolute', top: 10, left: 10, width: 50,
+          cursor: 'pointer', zIndex: 5,
+        }}
+        draggable={false}
+      />
     </motion.div>
   );
 }
