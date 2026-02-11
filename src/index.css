@@ -230,69 +230,33 @@ body {
 }
 
 /* ======================== */
-/* MAIN MENU                */
+/* MAIN MENU (SVG-based)    */
 /* ======================== */
 
 .main-menu {
   width: 100%;
   height: 100%;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
-/* Title area */
-.mm-title-area {
-  text-align: center;
-  margin-top: 6px;
-  margin-bottom: 4px;
-  z-index: 2;
-}
-.mm-title-small {
-  font-family: 'Luckiest Guy', cursive;
-  font-size: 15px;
-  color: white;
-  letter-spacing: 2px;
-  text-shadow: 1px 1px 0 #333, -1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333;
-  -webkit-text-stroke: 0.5px #444;
-}
-.mm-title-big {
-  font-family: 'Luckiest Guy', cursive;
-  line-height: 0.85;
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-}
-.mm-brain {
-  font-size: 60px;
-  color: var(--title-pink);
-  text-shadow:
-    3px 3px 0 var(--title-outline),
-    4px 4px 0 #4A1530,
-    5px 5px 2px rgba(0,0,0,0.4),
-    -1.5px -1.5px 0 var(--title-outline),
-    1.5px -1.5px 0 var(--title-outline),
-    -1.5px 1.5px 0 var(--title-outline);
-  -webkit-text-stroke: 2px var(--title-outline);
-  letter-spacing: 3px;
-}
-.mm-question {
-  font-size: 64px;
-  color: var(--accent-yellow);
-  text-shadow:
-    3px 3px 0 #8B6914,
-    4px 4px 0 #5C4710,
-    5px 5px 2px rgba(0,0,0,0.4),
-    -1.5px -1.5px 0 #8B6914,
-    1.5px -1.5px 0 #8B6914,
-    -1.5px 1.5px 0 #8B6914;
-  -webkit-text-stroke: 2px #8B6914;
-  margin-left: -2px;
+/* Full Flash stage SVG as background */
+.mm-stage-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
 }
 
-/* Pro Player Club banner */
+/* Pro Player Club banner - overlay on stage */
 .mm-pro-banner {
+  position: absolute;
+  top: 155px;
+  left: 50%;
+  transform: translateX(-70%);
   display: inline-block;
   background: linear-gradient(180deg, #D4A830, #B8922A);
   border: 2px solid #8B7D3C;
@@ -303,7 +267,7 @@ body {
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
   letter-spacing: 2px;
-  margin-top: 2px;
+  z-index: 5;
 }
 .mm-star {
   color: var(--accent-yellow);
@@ -312,15 +276,15 @@ body {
 /* Top-right controls */
 .mm-controls {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 55px;
+  right: 10px;
   display: flex;
-  gap: 4px;
+  gap: 3px;
   z-index: 10;
 }
 .mm-ctrl-btn {
-  width: 50px;
-  height: 50px;
+  width: 38px;
+  height: 38px;
   background: rgba(20,25,30,0.93);
   border-radius: 8px;
   display: flex;
@@ -338,50 +302,59 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Content area (buttons) */
-.mm-content {
+/* Buttons overlay - positioned over the stage sunburst area */
+.mm-buttons-overlay {
+  position: absolute;
+  top: 155px;
+  left: 55px;
+  z-index: 5;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 0 10px;
-  width: 65%;
-  z-index: 2;
+  gap: 6px;
 }
-.mm-top-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 20px;
-  margin-bottom: 10px;
+
+.mm-play-btn {
+  width: 120px;
+  cursor: pointer;
 }
-.mm-bottom-row {
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-}
-.mm-btn {
+
+.mm-challenge-btn {
+  width: 100px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  position: absolute;
+  left: 150px;
+  top: 5px;
 }
 
-/* Speech bubble - positioned separately in top-right */
-.mm-speech {
-  position: absolute;
-  top: 55px;
-  right: 5px;
-  z-index: 5;
+.mm-btn-label {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 22px;
+  text-align: center;
+  line-height: 1;
+}
+.mm-btn-label-pink {
+  color: var(--title-pink);
+  text-shadow:
+    2px 2px 0 var(--title-outline),
+    3px 3px 2px rgba(0,0,0,0.3),
+    -1px -1px 0 var(--title-outline),
+    1px -1px 0 var(--title-outline),
+    -1px 1px 0 var(--title-outline);
+  -webkit-text-stroke: 1px var(--title-outline);
 }
 
-/* Character area - large, bottom-right, overlapping platform */
-.mm-character {
-  position: absolute;
-  right: -10px;
-  bottom: -5px;
-  z-index: 3;
-  transform: scale(1.3);
-  transform-origin: bottom right;
+.mm-bottom-btns {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.mm-small-btn {
+  width: 90px;
+  cursor: pointer;
 }
 
 /* ======================== */

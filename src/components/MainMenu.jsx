@@ -1,27 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { playSound } from '../utils/sounds';
-import Character from './Character';
-
-/* Label style matching OG: bold cartoon font, dark outline, pink/magenta fill */
-const Label = ({ children, size = 28, color = '#E83E8C' }) => (
-  <div style={{
-    fontFamily: "'Luckiest Guy', cursive",
-    fontSize: `${size}px`,
-    color,
-    textShadow: `
-      2px 2px 0 #4A1530,
-      3px 3px 0 #3A0F25,
-      4px 4px 2px rgba(0,0,0,0.4),
-      -1.5px -1.5px 0 #4A1530,
-      1.5px -1.5px 0 #4A1530,
-      -1.5px 1.5px 0 #4A1530`,
-    WebkitTextStroke: '1.5px #4A1530',
-    letterSpacing: '1px',
-    textAlign: 'center',
-    lineHeight: 1,
-  }}>{children}</div>
-);
 
 function MainMenu({ onStartFullTest, onStartPractice, allGames, soundEnabled, onToggleSound }) {
   const click = (fn) => () => { playSound('buttonMenu'); fn(); };
@@ -33,19 +12,20 @@ function MainMenu({ onStartFullTest, onStartPractice, allGames, soundEnabled, on
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Title */}
-      <div className="mm-title-area">
-        <div className="mm-title-small">WHO HAS THE BIGGEST</div>
-        <div className="mm-title-big">
-          <span className="mm-brain">BRAIN</span>
-          <span className="mm-question">?</span>
-        </div>
-        <div className="mm-pro-banner">
-          <span className="mm-star">★</span> PRO PLAYER CLUB <span className="mm-star">★</span>
-        </div>
+      {/* Full stage SVG as background - this IS the pixel-perfect Flash stage */}
+      <img
+        src="/svg/game-stage-cropped.svg"
+        alt=""
+        className="mm-stage-bg"
+        draggable={false}
+      />
+
+      {/* PRO PLAYER CLUB banner - overlays on top of stage title area */}
+      <div className="mm-pro-banner">
+        <span className="mm-star">★</span> PRO PLAYER CLUB <span className="mm-star">★</span>
       </div>
 
-      {/* Top-right controls - 3 buttons */}
+      {/* Top-right controls */}
       <div className="mm-controls">
         <div className="mm-ctrl-btn">
           <svg width="26" height="26" viewBox="0 0 28 28">
@@ -76,99 +56,51 @@ function MainMenu({ onStartFullTest, onStartPractice, allGames, soundEnabled, on
         </motion.div>
       </div>
 
-      {/* Main content area */}
-      <div className="mm-content">
-        {/* Top row: PLAY + CHALLENGE */}
-        <div className="mm-top-row">
-          <motion.div
-            className="mm-btn"
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={click(onStartFullTest)}
-          >
-            {/* Play icons - crop to just the circles, hide embedded PLAY text */}
-            <div style={{ width: 120, height: 68, overflow: 'hidden' }}>
-              <img
-                src="/sprites/DefineSprite_325_brain_game_fla.ButtonPlay_514/1.png"
-                alt=""
-                style={{ width: 140, height: 'auto', marginTop: -5, marginLeft: -10, pointerEvents: 'none' }}
-                draggable={false}
-              />
-            </div>
-            <Label size={36} color="#E83E8C">PLAY</Label>
+      {/* Interactive buttons overlaid on the stage */}
+      <div className="mm-buttons-overlay">
+        {/* PLAY button */}
+        <motion.div
+          className="mm-play-btn"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={click(onStartFullTest)}
+        >
+          <img src="/svg/play-button.svg" alt="Play" style={{ width: '100%', height: 'auto' }} draggable={false} />
+        </motion.div>
+
+        {/* CHALLENGE button */}
+        <motion.div
+          className="mm-challenge-btn"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={click(onStartFullTest)}
+        >
+          {/* Boxing gloves SVG - no Flash sprite available */}
+          <svg width="100" height="70" viewBox="0 0 100 70" fill="none">
+            <ellipse cx="30" cy="28" rx="22" ry="24" fill="#E53935"/>
+            <ellipse cx="70" cy="28" rx="22" ry="24" fill="#1565C0"/>
+            <rect x="20" y="48" width="20" height="12" rx="4" fill="#B71C1C"/>
+            <rect x="60" y="48" width="20" height="12" rx="4" fill="#0D47A1"/>
+            <ellipse cx="30" cy="23" rx="11" ry="6" fill="#EF5350" opacity="0.4"/>
+            <ellipse cx="70" cy="23" rx="11" ry="6" fill="#42A5F5" opacity="0.4"/>
+          </svg>
+          <div className="mm-btn-label mm-btn-label-pink">CHALLENGE</div>
+        </motion.div>
+
+        {/* Bottom row */}
+        <div className="mm-bottom-btns">
+          <motion.div className="mm-small-btn" whileHover={{ scale: 1.08 }} onClick={click(() => {})}>
+            <img src="/svg/invite-button.svg" alt="Invite" style={{ width: '100%', height: 'auto' }} draggable={false} />
           </motion.div>
 
-          <motion.div
-            className="mm-btn"
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={click(onStartFullTest)}
-          >
-            {/* Boxing gloves */}
-            <svg width="100" height="70" viewBox="0 0 100 70" fill="none">
-              <ellipse cx="30" cy="28" rx="22" ry="24" fill="#E53935"/>
-              <ellipse cx="70" cy="28" rx="22" ry="24" fill="#1565C0"/>
-              <rect x="20" y="48" width="20" height="12" rx="4" fill="#B71C1C"/>
-              <rect x="60" y="48" width="20" height="12" rx="4" fill="#0D47A1"/>
-              <ellipse cx="30" cy="23" rx="11" ry="6" fill="#EF5350" opacity="0.4"/>
-              <ellipse cx="70" cy="23" rx="11" ry="6" fill="#42A5F5" opacity="0.4"/>
-              <circle cx="28" cy="20" r="3" fill="white" opacity="0.3"/>
-              <circle cx="68" cy="20" r="3" fill="white" opacity="0.3"/>
-            </svg>
-            <Label size={26} color="#E83E8C">CHALLENGE</Label>
-          </motion.div>
-        </div>
-
-        {/* Bottom row: INVITE + TROPHIES + PROFILE */}
-        <div className="mm-bottom-row">
-          <motion.div className="mm-btn mm-small" whileHover={{ scale: 1.08 }} onClick={click(() => {})}>
-            <div style={{ width: 80, height: 50, overflow: 'hidden' }}>
-              <img
-                src="/sprites/DefineSprite_334_brain_game_fla.ButtonInvite_517/1.png"
-                alt=""
-                style={{ width: 100, height: 'auto', marginTop: -3, marginLeft: -10, pointerEvents: 'none' }}
-                draggable={false}
-              />
-            </div>
-            <Label size={20}>INVITE</Label>
+          <motion.div className="mm-small-btn" whileHover={{ scale: 1.08 }} onClick={click(() => {})}>
+            <img src="/svg/trophies-button.svg" alt="Trophies" style={{ width: '100%', height: 'auto' }} draggable={false} />
           </motion.div>
 
-          <motion.div className="mm-btn mm-small" whileHover={{ scale: 1.08 }} onClick={click(() => {})}>
-            <div style={{ width: 70, height: 50, overflow: 'hidden' }}>
-              <img
-                src="/sprites/DefineSprite_330_ButtonAchivements/1.png"
-                alt=""
-                style={{ width: 90, height: 'auto', marginTop: -3, marginLeft: -10, pointerEvents: 'none' }}
-                draggable={false}
-              />
-            </div>
-            <Label size={20}>TROPHIES</Label>
-          </motion.div>
-
-          <motion.div className="mm-btn mm-small" whileHover={{ scale: 1.08 }} onClick={click(() => {})}>
-            <div style={{ width: 70, height: 42, overflow: 'hidden' }}>
-              <img
-                src="/sprites/DefineSprite_338/1.png"
-                alt=""
-                style={{ width: 85, height: 'auto', marginTop: -2, marginLeft: -8, pointerEvents: 'none' }}
-                draggable={false}
-              />
-            </div>
-            <Label size={20}>PROFILE</Label>
+          <motion.div className="mm-small-btn" whileHover={{ scale: 1.08 }} onClick={click(() => {})}>
+            <img src="/svg/profile-button.svg" alt="Profile" style={{ width: '100%', height: 'auto' }} draggable={false} />
           </motion.div>
         </div>
-      </div>
-
-      {/* Speech bubble - positioned separately from character */}
-      <div className="mm-speech">
-        <div className="speech-bubble" style={{ marginTop: 0, maxWidth: 145, fontSize: '13px' }}>
-          Welcome! Got a big BRAIN? Play Who Has The Biggest Brain? to find out!
-        </div>
-      </div>
-
-      {/* Character - large, bottom-right */}
-      <div className="mm-character">
-        <Character />
       </div>
     </motion.div>
   );
