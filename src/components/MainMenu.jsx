@@ -75,14 +75,20 @@ function MainMenu({ onStartFullTest, onStartPractice, allGames, soundEnabled, on
           whileTap={{ scale: 0.95 }}
           onClick={click(onStartFullTest)}
         >
-          {/* Boxing gloves SVG - no Flash sprite available */}
-          <svg width="100" height="70" viewBox="0 0 100 70" fill="none">
-            <ellipse cx="30" cy="28" rx="22" ry="24" fill="#E53935"/>
-            <ellipse cx="70" cy="28" rx="22" ry="24" fill="#1565C0"/>
-            <rect x="20" y="48" width="20" height="12" rx="4" fill="#B71C1C"/>
-            <rect x="60" y="48" width="20" height="12" rx="4" fill="#0D47A1"/>
-            <ellipse cx="30" cy="23" rx="11" ry="6" fill="#EF5350" opacity="0.4"/>
-            <ellipse cx="70" cy="23" rx="11" ry="6" fill="#42A5F5" opacity="0.4"/>
+          {/* Boxing gloves SVG - blue left, red right (matching OG) */}
+          <svg width="110" height="75" viewBox="0 0 110 75" fill="none">
+            {/* Blue glove (left) */}
+            <ellipse cx="32" cy="28" rx="24" ry="26" fill="#1565C0"/>
+            <ellipse cx="32" cy="22" rx="12" ry="7" fill="#42A5F5" opacity="0.35"/>
+            <circle cx="28" cy="18" r="4" fill="white" opacity="0.25"/>
+            <rect x="22" y="50" width="20" height="14" rx="5" fill="#0D47A1"/>
+            <rect x="24" y="52" width="16" height="4" rx="2" fill="#1565C0" opacity="0.5"/>
+            {/* Red glove (right) */}
+            <ellipse cx="78" cy="28" rx="24" ry="26" fill="#E53935"/>
+            <ellipse cx="78" cy="22" rx="12" ry="7" fill="#EF5350" opacity="0.35"/>
+            <circle cx="74" cy="18" r="4" fill="white" opacity="0.25"/>
+            <rect x="68" y="50" width="20" height="14" rx="5" fill="#B71C1C"/>
+            <rect x="70" y="52" width="16" height="4" rx="2" fill="#E53935" opacity="0.5"/>
           </svg>
           <div className="mm-btn-label mm-btn-label-pink">CHALLENGE</div>
         </motion.div>
