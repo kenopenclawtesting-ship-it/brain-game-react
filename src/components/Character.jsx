@@ -4,7 +4,7 @@ function Character({ message }) {
   return (
     <div className="character-wrapper">
       {message && (
-        <div className="speech-bubble">{message}</div>
+        <div className="speech-bubble" style={{ marginTop: 55 }}>{message}</div>
       )}
       {/* Character matching OG Flash game style */}
       <svg width="140" height="180" viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
