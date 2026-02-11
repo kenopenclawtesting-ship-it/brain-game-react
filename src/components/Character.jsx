@@ -6,45 +6,65 @@ function Character({ message }) {
       {message && (
         <div className="speech-bubble">{message}</div>
       )}
-      {/* Chibi character placeholder - SVG */}
-      <svg width="160" height="200" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
-        {/* Hair back */}
-        <ellipse cx="80" cy="65" rx="55" ry="55" fill="#1a1a1a" />
-        {/* Spiky hair bits */}
-        <path d="M25 50 Q15 20 40 30 Q30 10 55 25" fill="#1a1a1a" />
-        <path d="M135 50 Q145 20 120 30 Q130 10 105 25" fill="#1a1a1a" />
-        <path d="M60 10 Q70 -5 80 10 Q90 -5 100 10" fill="#1a1a1a" />
-        {/* Face */}
-        <ellipse cx="80" cy="72" rx="42" ry="40" fill="#FFDCB5" />
-        {/* Eyes */}
-        <ellipse cx="65" cy="70" rx="7" ry="8" fill="white" />
-        <ellipse cx="95" cy="70" rx="7" ry="8" fill="white" />
-        <ellipse cx="65" cy="71" rx="4" ry="5" fill="#2a2a2a" />
-        <ellipse cx="95" cy="71" rx="4" ry="5" fill="#2a2a2a" />
-        <ellipse cx="66" cy="69" rx="2" ry="2" fill="white" />
-        <ellipse cx="96" cy="69" rx="2" ry="2" fill="white" />
-        {/* Eyebrows */}
-        <path d="M55 60 Q65 55 75 60" stroke="#1a1a1a" strokeWidth="2.5" fill="none" />
-        <path d="M85 60 Q95 55 105 60" stroke="#1a1a1a" strokeWidth="2.5" fill="none" />
-        {/* Mouth - smile */}
-        <path d="M68 85 Q80 95 92 85" stroke="#c0755a" strokeWidth="2" fill="none" />
-        {/* Cheek blush */}
-        <ellipse cx="52" cy="82" rx="8" ry="5" fill="rgba(255,150,150,0.3)" />
-        <ellipse cx="108" cy="82" rx="8" ry="5" fill="rgba(255,150,150,0.3)" />
-        {/* Body - shirt */}
-        <rect x="55" y="110" width="50" height="55" rx="8" fill="white" />
-        {/* Tie */}
-        <polygon points="80,115 75,130 80,140 85,130" fill="#3a8a3a" />
-        {/* Arms */}
-        <rect x="35" y="115" width="22" height="12" rx="6" fill="white" />
-        <rect x="103" y="115" width="22" height="12" rx="6" fill="white" />
-        {/* Hands */}
-        <circle cx="33" cy="121" r="8" fill="#FFDCB5" />
-        <circle cx="127" cy="121" r="8" fill="#FFDCB5" />
-        {/* Wave hand (right) - raised */}
-        <circle cx="132" cy="108" r="8" fill="#FFDCB5" />
-        <rect x="120" y="105" width="14" height="12" rx="5" fill="white" />
+      {/* Character matching OG Flash game style */}
+      <svg width="140" height="180" viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
+        {/* Hair - messy, voluminous, dark curly/wavy */}
+        <ellipse cx="70" cy="52" rx="50" ry="50" fill="#1C1C1C" />
+        {/* Curly hair tufts sticking out */}
+        <circle cx="25" cy="35" r="15" fill="#1C1C1C" />
+        <circle cx="115" cy="35" r="15" fill="#1C1C1C" />
+        <circle cx="30" cy="18" r="12" fill="#1C1C1C" />
+        <circle cx="55" cy="8" r="14" fill="#1C1C1C" />
+        <circle cx="85" cy="5" r="16" fill="#1C1C1C" />
+        <circle cx="110" cy="15" r="13" fill="#1C1C1C" />
+        <circle cx="120" cy="50" r="10" fill="#1C1C1C" />
+        <circle cx="20" cy="50" r="10" fill="#1C1C1C" />
+        <circle cx="40" cy="3" r="10" fill="#1C1C1C" />
+        <circle cx="100" cy="3" r="10" fill="#1C1C1C" />
+        
+        {/* Face - large round, beige/peach */}
+        <ellipse cx="70" cy="62" rx="38" ry="36" fill="#FDE8CE" />
+        
+        {/* Rosy cheeks - prominent pink circles */}
+        <ellipse cx="42" cy="72" rx="10" ry="7" fill="rgba(255,140,160,0.45)" />
+        <ellipse cx="98" cy="72" rx="10" ry="7" fill="rgba(255,140,160,0.45)" />
+        
+        {/* Eyes - small black dots */}
+        <circle cx="58" cy="60" r="3.5" fill="#1C1C1C" />
+        <circle cx="82" cy="60" r="3.5" fill="#1C1C1C" />
+        
+        {/* Tiny eye highlights */}
+        <circle cx="59.5" cy="58.5" r="1.2" fill="white" />
+        <circle cx="83.5" cy="58.5" r="1.2" fill="white" />
+        
+        {/* Small smile */}
+        <path d="M62 75 Q70 82 78 75" stroke="#C08060" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        
+        {/* Neck */}
+        <rect x="62" y="94" width="16" height="10" fill="#FDE8CE" />
+        
+        {/* Body - white shirt */}
+        <rect x="42" y="100" width="56" height="50" rx="8" fill="white" />
+        
+        {/* Shirt collar V-shape */}
+        <path d="M58 100 L70 115 L82 100" stroke="#E8E8E8" strokeWidth="1.5" fill="none" />
+        
+        {/* Green diamond tie */}
+        <polygon points="70,105 65,118 70,132 75,118" fill="#3A8A3A" />
+        
+        {/* Arms outstretched */}
+        <rect x="20" y="108" width="26" height="11" rx="5.5" fill="white" />
+        <rect x="94" y="108" width="26" height="11" rx="5.5" fill="white" />
+        
+        {/* Hands - flesh colored */}
+        <circle cx="18" cy="113" r="7" fill="#FDE8CE" />
+        <circle cx="122" cy="113" r="7" fill="#FDE8CE" />
+        
+        {/* Right hand waving slightly higher */}
+        <circle cx="124" cy="105" r="7" fill="#FDE8CE" />
+        <rect x="112" y="102" width="14" height="10" rx="5" fill="white" />
       </svg>
+      {/* Metallic podium */}
       <div className="character-pedestal" />
     </div>
   );
