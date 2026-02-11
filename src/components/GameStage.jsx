@@ -1,53 +1,49 @@
 import React from 'react';
 
 function GameStage({ children, showCopyright = true }) {
-  // Generate marquee lights for bottom strip
-  const lights = Array.from({ length: 40 }, (_, i) => (
-    <div key={i} className="marquee-light" />
-  ));
-
-  // Generate column lights (vertical)
-  const columnLights = (side) => Array.from({ length: 14 }, (_, i) => (
-    <div key={`${side}-${i}`} className="column-light" />
-  ));
-
   return (
     <div className="game-stage">
-      {/* Left metallic column */}
+      {/* Background image from extracted Flash sprite */}
+      <img
+        src="/sprites/DefineSprite_282_BgBrain/1.png"
+        alt=""
+        className="stage-bg-img"
+        draggable={false}
+      />
+
+      {/* Left column with marquee lights */}
       <div className="stage-column stage-column-left">
-        <div className="column-lights-strip">
-          {columnLights('left')}
-        </div>
+        {Array.from({ length: 16 }, (_, i) => (
+          <div key={i} className="column-light" style={{ animationDelay: `${(i % 3) * 0.33}s` }} />
+        ))}
       </div>
 
-      {/* Right metallic column */}
+      {/* Right column with marquee lights */}
       <div className="stage-column stage-column-right">
-        <div className="column-lights-strip">
-          {columnLights('right')}
-        </div>
+        {Array.from({ length: 16 }, (_, i) => (
+          <div key={i} className="column-light" style={{ animationDelay: `${((i + 1) % 3) * 0.33}s` }} />
+        ))}
       </div>
 
       {/* Spotlights */}
-      <div className="spotlight spotlight-left">
-        <div className="spotlight-body" />
-        <div className="spotlight-beam" />
-      </div>
-      <div className="spotlight spotlight-right">
-        <div className="spotlight-body" />
-        <div className="spotlight-beam" />
-      </div>
+      <div className="spotlight spotlight-left" />
+      <div className="spotlight spotlight-right" />
 
-      {/* Inner stage area where content goes */}
+      {/* Inner content area */}
       <div className="stage-inner">
         {children}
       </div>
 
-      {/* Platform with 3 tiered steps and marquee lights */}
+      {/* Platform (pink tiered steps) */}
       <div className="platform">
-        <div className="platform-step-1" />
-        <div className="platform-step-2" />
-        <div className="platform-step-3" />
-        <div className="marquee-strip">{lights}</div>
+        <div className="platform-step step-1" />
+        <div className="platform-step step-2" />
+        <div className="platform-step step-3" />
+        <div className="marquee-strip">
+          {Array.from({ length: 32 }, (_, i) => (
+            <div key={i} className="marquee-light" style={{ animationDelay: `${(i % 3) * 0.33}s` }} />
+          ))}
+        </div>
         <div className="pedestal" />
       </div>
 
